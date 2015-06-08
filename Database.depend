@@ -1,8 +1,0 @@
-# depslib dependency file v1.0
-1433537338 source:/home/tomasuh/programming/c/Database/engine.c
-	<stdio.h>
-	<stdlib.h>
-	"engine.h"
-
-1433577183 /home/tomasuh/programming/c/Database/engine.h
-
