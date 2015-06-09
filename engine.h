@@ -41,7 +41,7 @@ typedef struct{
 
 typedef struct{
     Type    type;
-    Value   *elements;
+    Value   **elements;
 }Column;
 /*
 elements[1] row 1 in column
@@ -49,7 +49,7 @@ elements[1] row 1 in column
 
 typedef struct{
     Name name;
-    Column *columns;
+    Column **columns;
     int nrOfColumns;
 }Table;
 //column[1]
@@ -63,6 +63,6 @@ typedef struct{
 
 
 
-Database* db_Create(Name db_Database_Name);
+void db_Create(Database **db, Name db_Database_Name);
 void db_AddTables(Database *db, Name *db_TableNames,int nrOfTables, int *errorcode);
 #endif // ENGINE_H_INCLUDED

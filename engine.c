@@ -5,7 +5,7 @@
 #include <string.h>
 int main()
 {
-    Database myOwn;
+    //Database myOwn;
     printf("Hello world!\n");
 
 
@@ -71,28 +71,27 @@ int main()
     */
 
     Database *db;
-    db = db_Create("Databasen");
-    printf(db->name);
+    //db = malloc(sizeof(Database));
+    db_Create(&db, "Databasen");
+    printf("%s",db->name);
 
     int *ec = malloc(sizeof(int));
 
     Name tbNames[] = {"Apa","Fisk","Ko"};
     db_AddTables(db, tbNames, 3,ec);
-
+    printf("%s",db->tables[0]->name);
     return 0;
 }
 
-Database* db_Create(Name db_Database_Name){
+void db_Create(Database **db, Name db_Database_Name){
 
-    Database *db = malloc(sizeof(Database));
+    *db = malloc(sizeof(Database));
 
-    db->name = strdup((const char *) db_Database_Name);
+    (*db)->name = strdup((const char *) db_Database_Name);
 
     /*Empty database*/
-    db->tables = NULL;
-    db->nrOfTables = 0;
-
-    return db;
+    (*db)->tables = NULL;
+    (*db)->nrOfTables = 0;
 }
 
 /*
@@ -111,8 +110,6 @@ void db_AddTables(Database *db, Name *db_TableNames,int nrOfTables, int *errorco
                 return;
             }
         }
-
-
     }
 
     /*Calculate new total size needed for the tables*/
@@ -130,7 +127,7 @@ void db_AddTables(Database *db, Name *db_TableNames,int nrOfTables, int *errorco
     */
     for (int i=0; i < nrOfTables; i++){
         t = malloc(sizeof(Table));
-        t->name = strdup(db_TableNames[i]);
+        t->name = (Name) strdup(db_TableNames[i]);
         t->nrOfColumns = 0;
         t->columns = (Column *) NULL;
         db->tables[oldExistingTb+i] = t;
@@ -170,5 +167,5 @@ void db_select(){
 void db_delete(){
 }
 
-void db_close(){
+void db_close(Database *db, int *errorcode){
 }
