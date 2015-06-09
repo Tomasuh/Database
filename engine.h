@@ -56,12 +56,13 @@ typedef struct{
 
 typedef struct{
     Name    name;
-    Table *tables;
+    Table **tables;
     int nrOfTables;
 }Database;
-//tables[1]
+//tables[1]->column
 
 
-Database db_Create(Name db_Database_Name);
 
+Database* db_Create(Name db_Database_Name);
+void db_AddTables(Database *db, Name *db_TableNames,int nrOfTables, int *errorcode);
 #endif // ENGINE_H_INCLUDED

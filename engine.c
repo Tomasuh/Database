@@ -22,16 +22,16 @@ int main()
 
     */
 
-    Database db;
+
 
     /*Database name*/
-    Name name = "BAJS";
-    db.name = name;
+//    Name name = "BAJS";
+  //  db.name = name;
 
     /*List of tables
       allocate space for 3 tables.
     */
-    Table *tb = malloc(3*sizeof(Table));
+    //Table *tb = malloc(3*sizeof(Table));
     /*Allocate space for the table instances*/
     /*for(int i=0; i<3; i++){
         tb[i] = malloc(sizeof(Table));
@@ -39,23 +39,23 @@ int main()
 
 
     /*Table names*/
-    Name tb1 = "Apa";
+    /*Name tb1 = "Apa";
     Name tb2 = "Fisk";
     Name tb3 = "Korv";
 
     /*Set table names and allocate space for columns*/
-    tb[0].name = strdup(tb1);
+    /*tb[0].name = strdup(tb1);
     tb[1].name = strdup(tb2);
     tb[2].name = strdup(tb3);
 
     /*Allocate space for columns*/
-    tb[0].columns = malloc(1*sizeof(Column));
+    /*tb[0].columns = malloc(1*sizeof(Column));
     tb[1].columns = malloc(1*sizeof(Column));
     tb[2].columns = malloc(1*sizeof(Column));
 
 
     /*Column names and types*/
-    Name c1 = strdup("kiosk");
+    /*Name c1 = strdup("kiosk");
     Name c2 = strdup("mes");
     Name c3 = strdup("brod");
 
@@ -63,15 +63,26 @@ int main()
 
 
     /*Add tables to database*/
-    db.tables = tb;
+    /*db.tables = tb;
     db.nrOfTables =3;
 
     Column column;
     myOwn = db_Create(name);
+    */
+
+    Database *db;
+    db = db_Create("Databasen");
+    printf(db->name);
+
+    int *ec = malloc(sizeof(int));
+
+    Name tbNames[] = {"Apa","Fisk","Ko"};
+    db_AddTables(db, tbNames, 3,ec);
+
     return 0;
 }
 
-Database db_Create(Name db_Database_Name){
+Database* db_Create(Name db_Database_Name){
 
     Database *db = malloc(sizeof(Database));
 
@@ -81,27 +92,53 @@ Database db_Create(Name db_Database_Name){
     db->tables = NULL;
     db->nrOfTables = 0;
 
-    return *db;
+    return db;
 }
 
 /*
 
 
 */
-void db_AddTables(Database *db, Name *db_TableNames,int nrOfTables){
+void db_AddTables(Database *db, Name *db_TableNames,int nrOfTables, int *errorcode){
     Table *t;
     int oldExistingTb = db->nrOfTables;
-    int newSize = (oldExistingTb+nrOfTables)*sizeof(Table);
-    db->tables = realloc(db, newSize);
 
+    /*Make sure no existing tables with same name exists*/
+    for(int i=0; i < oldExistingTb; i++){
+        for(int e=0; e < nrOfTables; e++){
+            if (strcmp(db_TableNames[e], db->tables[i]->name)) {
+                *errorcode = DUPLICATE_TABLE;
+                return;
+            }
+        }
+
+
+    }
+
+    /*Calculate new total size needed for the tables*/
+    int newSize = (oldExistingTb+nrOfTables)*sizeof(Table);
+
+    if(oldExistingTb>0){
+        db->tables = realloc(db, newSize);
+    }
+    else {
+        db->tables = malloc(newSize);
+    }
+
+    /*
+    Allocate size for each table and add them to the database.
+    */
     for (int i=0; i < nrOfTables; i++){
         t = malloc(sizeof(Table));
         t->name = strdup(db_TableNames[i]);
         t->nrOfColumns = 0;
         t->columns = (Column *) NULL;
-        db->tables[oldExistingTb+i] = *t;
+        db->tables[oldExistingTb+i] = t;
     }
+
     db->nrOfTables = oldExistingTb + nrOfTables;
+
+    *errorcode = SUCCESS;
 }
 
 
