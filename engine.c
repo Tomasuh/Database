@@ -22,54 +22,6 @@ int main()
 
     */
 
-
-
-    /*Database name*/
-//    Name name = "BAJS";
-  //  db.name = name;
-
-    /*List of tables
-      allocate space for 3 tables.
-    */
-    //Table *tb = malloc(3*sizeof(Table));
-    /*Allocate space for the table instances*/
-    /*for(int i=0; i<3; i++){
-        tb[i] = malloc(sizeof(Table));
-    }*/
-
-
-    /*Table names*/
-    /*Name tb1 = "Apa";
-    Name tb2 = "Fisk";
-    Name tb3 = "Korv";
-
-    /*Set table names and allocate space for columns*/
-    /*tb[0].name = strdup(tb1);
-    tb[1].name = strdup(tb2);
-    tb[2].name = strdup(tb3);
-
-    /*Allocate space for columns*/
-    /*tb[0].columns = malloc(1*sizeof(Column));
-    tb[1].columns = malloc(1*sizeof(Column));
-    tb[2].columns = malloc(1*sizeof(Column));
-
-
-    /*Column names and types*/
-    /*Name c1 = strdup("kiosk");
-    Name c2 = strdup("mes");
-    Name c3 = strdup("brod");
-
-    /*Set column type and name*/
-
-
-    /*Add tables to database*/
-    /*db.tables = tb;
-    db.nrOfTables =3;
-
-    Column column;
-    myOwn = db_Create(name);
-    */
-
     Database *db;
     //db = malloc(sizeof(Database));
     db_Create(&db, "Databasen");
@@ -78,7 +30,7 @@ int main()
     int *ec = malloc(sizeof(int));
 
     Name tbNames[] = {"Apa","Fisk","Ko"};
-    db_AddTables(db, tbNames, 3,ec);
+    *ec = db_AddTables(db, tbNames, 3);
     printf("%s",db->tables[0]->name);
     return 0;
 }
@@ -98,7 +50,7 @@ void db_Create(Database **db, Name db_Database_Name){
 
 
 */
-void db_AddTables(Database *db, Name *db_TableNames,int nrOfTables, int *errorcode){
+int db_AddTables(Database *db, Name *db_TableNames,int nrOfTables){
     Table *t;
     int oldExistingTb = db->nrOfTables;
 
@@ -106,8 +58,7 @@ void db_AddTables(Database *db, Name *db_TableNames,int nrOfTables, int *errorco
     for(int i=0; i < oldExistingTb; i++){
         for(int e=0; e < nrOfTables; e++){
             if (strcmp(db_TableNames[e], db->tables[i]->name)) {
-                *errorcode = DUPLICATE_TABLE;
-                return;
+                return DUPLICATE_TABLE;
             }
         }
     }
@@ -135,19 +86,29 @@ void db_AddTables(Database *db, Name *db_TableNames,int nrOfTables, int *errorco
 
     db->nrOfTables = oldExistingTb + nrOfTables;
 
-    *errorcode = SUCCESS;
+    return SUCCESS;
 }
 
 
-void db_AddColumns(Database *db, Name table, Name *columns, int nrOfColumns, Type *columnType){
+int db_AddColumns(Database *db, Name table, Name *columns, int nrOfColumns, Type *columnType){
     for (int i=0; i < nrOfColumns; i++){
 
     }
+
+    return SUCCESS;
 }
 
 
-void db_AddColumn(Database *db, Name table, Name column, Type columnType){
+int db_AddColumn(Database *db, Name table, Name column, Type columnType){
 
+    for(int i=0; i < db->nrOfTables; i++){
+        if(strcmp(db->tables[i]->name, column)){
+            printf("WOOP");
+        }
+
+    }
+
+    return SUCCESS;
 }
 
 
