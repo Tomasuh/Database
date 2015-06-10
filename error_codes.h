@@ -8,4 +8,5 @@
 #define DUPLICATE_COLUMN    3
 #define INVALID_TYPE        4
 #define TABLE_NOT_FOUND     5
+#define COLUMN_NOT_FOUND    6
 #endif // ERRORCODES_H_INCLUDED

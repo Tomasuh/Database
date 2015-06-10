@@ -26,8 +26,10 @@ typedef struct{
 }Value;
 
 typedef struct{
-    Type    type;
-    Value   **elements;
+    Name name;
+    Type type;
+    Value **elements;
+    int nrOfElements;
 }Column;
 
 typedef struct{

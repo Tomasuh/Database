@@ -132,6 +132,9 @@ int db_AddColumn(Database *db, Name table, Name column, Type columnType){
             //Allocate space for the column and set type
             db->tables[i]->columns[nrOfColumns-1] = malloc(sizeof(Column));
             db->tables[i]->columns[nrOfColumns-1]->type = columnType;
+            db->tables[i]->columns[nrOfColumns-1]->name = strdup(column);
+            db->tables[i]->columns[nrOfColumns-1]->elements = NULL;
+            db->tables[i]->columns[nrOfColumns-1]->nrOfElements = 0;
             return SUCCESS;
         }
     }
@@ -147,7 +150,38 @@ Database db_load(Name fileName){
 
 //Database db_initialize(Database db,int db_Name_Length)
 
-void db_insert(Database db, Name db_columnName, Element element){
+int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element *elements){
+
+
+}
+
+int db_insertElem(Database *db, Name table, Name column, Element elements){
+    /*Find correct table*/
+    for(int i=0; i < db->nrOfTables;i++) {
+        if(strcmp(db->tables[i]->name, table)==0){
+
+            /*Find correct column*/
+            for(int e=0; e < db->tables[i]->nrOfColumns; e++){
+                if(strcmp(db->tables[i]->columns[e]->name, column)==0){
+
+                    /*Malloc or realloc?*/
+                    if(db->tables[i]->columns[e]->nrOfElements==0){
+
+                    }
+                    else{
+
+                    }
+
+                    db->tables[i]->columns[e]->nrOfElements+=1;
+                    return SUCCESS;
+
+                }
+            }
+            return COLUMN_NOT_FOUND;
+
+        }
+    }
+    return TABLE_NOT_FOUND;
 }
 
 void db_select(){
