@@ -21,7 +21,8 @@ int main()
 
 
     */
-
+    Name columns = {"FIIIISK","OOOOOXE","KOOOORV"};
+    Type typess = {DB_STRING,DB_STRING,DB_STRING};
     Database *db;
     //db = malloc(sizeof(Database));
     db_Create(&db, "Databasen");
@@ -34,6 +35,12 @@ int main()
     printf("%s",db->tables[0]->name);
 
     db_AddColumn(db,"Apa","fjong", 1);
+
+    db_AddColumns(db,"Apa",&columns,3,&typess);
+    //int db_AddColumns(Database *db, Name table, Name *columns, int nrOfColumns, Type *columnType){
+    //printf("%d", db->tables[0]->columns[2]->type);
+    printf("%d", db->tables[0]->columns[1]->type);
+    //printf("%d", db->tables[0]->nrOfColumns);
     return 0;
 }
 
@@ -59,7 +66,7 @@ int db_AddTables(Database *db, Name *db_TableNames,int nrOfTables){
     /*Make sure no existing tables with same name exists*/
     for(int i=0; i < oldExistingTb; i++){
         for(int e=0; e < nrOfTables; e++){
-            if (strcmp(db_TableNames[e], db->tables[i]->name)) {
+            if ((strcmp(db_TableNames[e], db->tables[i]->name))==0) {
                 return DUPLICATE_TABLE;
             }
         }
@@ -93,8 +100,13 @@ int db_AddTables(Database *db, Name *db_TableNames,int nrOfTables){
 
 
 int db_AddColumns(Database *db, Name table, Name *columns, int nrOfColumns, Type *columnType){
+    int ret;
     for (int i=0; i < nrOfColumns; i++){
+        ret = db_AddColumn(db, table, columns[i], columnType[i]);
 
+        if(ret!=SUCCESS) {
+            return ret;
+        }
     }
 
     return SUCCESS;
@@ -104,7 +116,7 @@ int db_AddColumns(Database *db, Name table, Name *columns, int nrOfColumns, Type
 int db_AddColumn(Database *db, Name table, Name column, Type columnType){
     for(int i=0; i < db->nrOfTables; i++){
         /*Match on correct table*/
-        if(strcmp(db->tables[i]->name, table)){
+        if((strcmp(db->tables[i]->name, table))==0){
             db->tables[i]->nrOfColumns += 1;
 
             int nrOfColumns = db->tables[i]->nrOfColumns;
@@ -117,9 +129,9 @@ int db_AddColumn(Database *db, Name table, Name column, Type columnType){
                 db->tables[i]->columns = realloc(db->tables[i]->columns,nrOfColumns*sizeof(Column *));
             }
 
-            //Allocate space for the column
+            //Allocate space for the column and set type
             db->tables[i]->columns[nrOfColumns-1] = malloc(sizeof(Column));
-
+            db->tables[i]->columns[nrOfColumns-1]->type = columnType;
             return SUCCESS;
         }
     }
