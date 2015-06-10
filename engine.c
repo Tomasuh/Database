@@ -64,10 +64,10 @@ int db_AddTables(Database *db, Name *db_TableNames,int nrOfTables){
     }
 
     /*Calculate new total size needed for the tables*/
-    int newSize = (oldExistingTb+nrOfTables)*sizeof(Table);
+    int newSize = (oldExistingTb+nrOfTables)*sizeof(Table *);
 
     if(oldExistingTb>0){
-        db->tables = realloc(db, newSize);
+        db->tables = realloc(db->tables, newSize);
     }
     else {
         db->tables = malloc(newSize);
@@ -100,15 +100,30 @@ int db_AddColumns(Database *db, Name table, Name *columns, int nrOfColumns, Type
 
 
 int db_AddColumn(Database *db, Name table, Name column, Type columnType){
-
+    /*First check if any duplicate columns, performance wise not superb solution*/
     for(int i=0; i < db->nrOfTables; i++){
-        if(strcmp(db->tables[i]->name, column)){
-            printf("WOOP");
-        }
+        /*Match on correct table*/
+        if(strcmp(db->tables[i]->name, table)){
+            db->tables[i]->nrOfColumns += 1;
 
+            int nrOfColumns = db->tables[i]->nrOfColumns;
+            /*First time allocating memory for a column in the table*/
+            if(nrOfColumns==1){
+                db->tables[i]->columns = malloc(nrOfColumns*sizeof(Column *));
+            }
+            /*Else reallocate the list of pointers*/
+            else{
+                db->tables[i]->columns = realloc(db->tables[i]->columns,nrOfColumns*sizeof(Column *));
+            }
+
+            //Allocate space for the column
+            db->tables[i]->columns[nrOfColumns-1] = malloc(sizeof(Column));
+
+            return SUCCESS;
+        }
     }
 
-    return SUCCESS;
+    return TABLE_NOT_FOUND;
 }
 
 
@@ -128,5 +143,6 @@ void db_select(){
 void db_delete(){
 }
 
-void db_close(Database *db, int *errorcode){
+void db_close(Database *db){
+
 }
