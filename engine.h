@@ -49,4 +49,6 @@ void db_Create(Database **db, Name db_Database_Name);
 int db_AddTables(Database *db, Name *db_TableNames,int nrOfTables);
 int db_AddColumn(Database *db, Name table, Name column, Type columnType);
 int db_AddColumns(Database *db, Name table, Name *columns, int nrOfColumns, Type *columnType);
+int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element *elements);
+int db_insertElem(Database *db, Name table, Name column, Element element);
 #endif // ENGINE_H_INCLUDED

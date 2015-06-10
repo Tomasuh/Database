@@ -22,6 +22,7 @@ int main()
 
     */
     Name columns = {"FIIIISK","OOOOOXE","KOOOORV"};
+    Element elems = {"FIIIISK","OOOOOXE","KOOOORV"};
     Type typess = {DB_STRING,DB_STRING,DB_STRING};
     Database *db;
     //db = malloc(sizeof(Database));
@@ -40,6 +41,13 @@ int main()
     //int db_AddColumns(Database *db, Name table, Name *columns, int nrOfColumns, Type *columnType){
     //printf("%d", db->tables[0]->columns[2]->type);
     printf("%d", db->tables[0]->columns[1]->type);
+    //db_insertElem(db, "Apa","fjong","EPA");
+    printf("%s", db->tables[0]->columns[0]->elements[0]->elem);
+    //(Database *db, Name table, Name column, Element element)
+    db_insert(db, "Apa", &columns, 3, &elems);
+    //db_insert()
+    printf("%s", db->tables[0]->columns[0]->elements[0]->elem);
+
     //printf("%d", db->tables[0]->nrOfColumns);
     return 0;
 }
@@ -151,11 +159,17 @@ Database db_load(Name fileName){
 //Database db_initialize(Database db,int db_Name_Length)
 
 int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element *elements){
-
-
+    int ret;
+    for(int i=0; i<nrOfColumns; i++){
+        ret = db_insertElem(db, table, columns[i], elements[i]);
+        if(ret!=SUCCESS){
+            return ret;
+        }
+    }
+    return SUCCESS;
 }
 
-int db_insertElem(Database *db, Name table, Name column, Element elements){
+int db_insertElem(Database *db, Name table, Name column, Element element){
     /*Find correct table*/
     for(int i=0; i < db->nrOfTables;i++) {
         if(strcmp(db->tables[i]->name, table)==0){
@@ -164,15 +178,22 @@ int db_insertElem(Database *db, Name table, Name column, Element elements){
             for(int e=0; e < db->tables[i]->nrOfColumns; e++){
                 if(strcmp(db->tables[i]->columns[e]->name, column)==0){
 
-                    /*Malloc or realloc?*/
-                    if(db->tables[i]->columns[e]->nrOfElements==0){
+                    int nrOfElements = db->tables[i]->columns[e]->nrOfElements;
 
+                    /*Malloc or realloc?*/
+                    if(nrOfElements==0){
+                        db->tables[i]->columns[e]->elements = malloc(sizeof(Element *));
                     }
                     else{
-
+                        db->tables[i]->columns[e]->elements = realloc(db->tables[i]->columns[e]->elements,nrOfElements*sizeof(Element *));
                     }
+                    nrOfElements++;
 
-                    db->tables[i]->columns[e]->nrOfElements+=1;
+                    //Allocate space for element and write value
+                    db->tables[i]->columns[e]->elements[nrOfElements-1] = malloc(sizeof(Element));
+                    db->tables[i]->columns[e]->elements[nrOfElements-1]->elem = strdup(element);
+                    //Update number of elements
+                    db->tables[i]->columns[e]->nrOfElements=nrOfElements;
                     return SUCCESS;
 
                 }
