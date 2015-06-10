@@ -23,18 +23,6 @@ float*/
 #define DB_FLOAT   3
 
 
-/*
-database typesize in words
-not needed?
-*/
-#define DB_STRING_S  0
-#define DB_CHAR_S    1
-#define DB_DOUBLE_S  2
-#define DB_FLOAT_S   3
-
-
-
-
 typedef struct{
    Element  elem;
 }Value;
