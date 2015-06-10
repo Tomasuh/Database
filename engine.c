@@ -32,6 +32,8 @@ int main()
     Name tbNames[] = {"Apa","Fisk","Ko"};
     *ec = db_AddTables(db, tbNames, 3);
     printf("%s",db->tables[0]->name);
+
+    db_AddColumn(db,"Apa","fjong", 1);
     return 0;
 }
 
@@ -100,7 +102,6 @@ int db_AddColumns(Database *db, Name table, Name *columns, int nrOfColumns, Type
 
 
 int db_AddColumn(Database *db, Name table, Name column, Type columnType){
-    /*First check if any duplicate columns, performance wise not superb solution*/
     for(int i=0; i < db->nrOfTables; i++){
         /*Match on correct table*/
         if(strcmp(db->tables[i]->name, table)){

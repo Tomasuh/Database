@@ -65,4 +65,5 @@ typedef struct{
 
 void db_Create(Database **db, Name db_Database_Name);
 int db_AddTables(Database *db, Name *db_TableNames,int nrOfTables);
+int db_AddColumn(Database *db, Name table, Name column, Type columnType);
 #endif // ENGINE_H_INCLUDED
