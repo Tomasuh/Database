@@ -6,8 +6,6 @@
 typedef char *Element;
 typedef char *Name;
 
-
-
 typedef unsigned int Type;
 
 /*
@@ -31,24 +29,18 @@ typedef struct{
     Type    type;
     Value   **elements;
 }Column;
-/*
-elements[1] row 1 in column
-*/
 
 typedef struct{
     Name name;
     Column **columns;
     int nrOfColumns;
 }Table;
-//column[1]
 
 typedef struct{
     Name    name;
     Table **tables;
     int nrOfTables;
 }Database;
-//tables[1]->column
-
 
 
 void db_Create(Database **db, Name db_Database_Name);
