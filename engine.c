@@ -21,9 +21,9 @@ int main()
 
 
     */
-    Name columns = {"FIIIISK","OOOOOXE","KOOOORV"};
-    Element elems = {"FIIIISK","OOOOOXE","KOOOORV"};
-    Type typess = {DB_STRING,DB_STRING,DB_STRING};
+    Name columns[3] = {"FIIIISK","OOOOOXE","KOOOORV"};
+    Element elems[3] = {"FIIIISK","OOOOOXE","KOOOORV"};
+    Type typess[3] = {DB_STRING,DB_STRING,DB_STRING};
     Database *db;
     //db = malloc(sizeof(Database));
     db_Create(&db, "Databasen");
@@ -37,16 +37,25 @@ int main()
 
     db_AddColumn(db,"Apa","fjong", 1);
 
-    db_AddColumns(db,"Apa",&columns,3,&typess);
+    int ret = db_AddColumns(db,"Apa",columns,3,typess);
+
+    printf("apa%d",ret);
     //int db_AddColumns(Database *db, Name table, Name *columns, int nrOfColumns, Type *columnType){
-    //printf("%d", db->tables[0]->columns[2]->type);
-    printf("%d", db->tables[0]->columns[1]->type);
-    //db_insertElem(db, "Apa","fjong","EPA");
-    printf("%s", db->tables[0]->columns[0]->elements[0]->elem);
+    printf("Column type:%d\n", db->tables[0]->columns[2]->type);
+    printf("Column type:%d\n", db->tables[0]->columns[1]->type);
+    printf("Column type:%d\n", db->tables[0]->columns[0]->type);
+    printf("Column name:%s\n", db->tables[0]->columns[2]->name);
+    printf("Column name:%s\n", db->tables[0]->columns[1]->name);
+    printf("Column name:%s\n", db->tables[0]->columns[0]->name);
+    db_insertElem(db, "Apa","fjong","EPA");
+    printf("\n%s", db->tables[0]->columns[0]->elements[0]->elem);
     //(Database *db, Name table, Name column, Element element)
-    db_insert(db, "Apa", &columns, 3, &elems);
+    ret = db_insert(db, "Apa", columns, 3, elems);
+    printf("%d ret", ret);
     //db_insert()
-    printf("%s", db->tables[0]->columns[0]->elements[0]->elem);
+    printf("nrElem%d",db->tables[0]->columns[0]->nrOfElements);
+    printf("\nelemVal:%s", db->tables[0]->columns[0]->elements[0]->elem);
+    printf("\nelemVal:%s", db->tables[0]->columns[3]->elements[0]->elem);
 
     //printf("%d", db->tables[0]->nrOfColumns);
     return 0;
@@ -110,6 +119,7 @@ int db_AddTables(Database *db, Name *db_TableNames,int nrOfTables){
 int db_AddColumns(Database *db, Name table, Name *columns, int nrOfColumns, Type *columnType){
     int ret;
     for (int i=0; i < nrOfColumns; i++){
+        printf("\nColumn tpeeee:%d",columnType[i]);
         ret = db_AddColumn(db, table, columns[i], columnType[i]);
 
         if(ret!=SUCCESS) {
@@ -177,20 +187,21 @@ int db_insertElem(Database *db, Name table, Name column, Element element){
             /*Find correct column*/
             for(int e=0; e < db->tables[i]->nrOfColumns; e++){
                 if(strcmp(db->tables[i]->columns[e]->name, column)==0){
+                    printf("Matched on:%s", db->tables[i]->columns[e]->name);
 
                     int nrOfElements = db->tables[i]->columns[e]->nrOfElements;
 
                     /*Malloc or realloc?*/
                     if(nrOfElements==0){
-                        db->tables[i]->columns[e]->elements = malloc(sizeof(Element *));
+                        db->tables[i]->columns[e]->elements = malloc(sizeof(Value *));
                     }
                     else{
-                        db->tables[i]->columns[e]->elements = realloc(db->tables[i]->columns[e]->elements,nrOfElements*sizeof(Element *));
+                        db->tables[i]->columns[e]->elements = realloc(db->tables[i]->columns[e]->elements,nrOfElements*sizeof(Value *));
                     }
                     nrOfElements++;
 
                     //Allocate space for element and write value
-                    db->tables[i]->columns[e]->elements[nrOfElements-1] = malloc(sizeof(Element));
+                    db->tables[i]->columns[e]->elements[nrOfElements-1] = malloc(sizeof(Value));
                     db->tables[i]->columns[e]->elements[nrOfElements-1]->elem = strdup(element);
                     //Update number of elements
                     db->tables[i]->columns[e]->nrOfElements=nrOfElements;
