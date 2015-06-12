@@ -260,6 +260,7 @@ int db_close(Database **db){
                 /*Element struct*/
                 free((*db)->tables[i]->columns[e]->elements[f]);
             }
+
         /*Free columns*/
 
         free((*db)->tables[i]->columns[e]->name);
@@ -279,4 +280,6 @@ int db_close(Database **db){
     /*Free database*/
     free((*db)->name);
     free(*db);
+
+    return SUCCESS;
 }
