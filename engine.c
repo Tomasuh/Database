@@ -60,6 +60,8 @@ int main()
     //printf("\nelemVal:%s", db->tables[0]->columns[2]->elements[1]->elem);
 
     //printf("%d", db->tables[0]->nrOfColumns);
+    db_close(&db);
+
     return 0;
 }
 
@@ -238,6 +240,43 @@ void db_select(){
 void db_delete(){
 }
 
-void db_close(Database *db){
 
+/*Free all allocated memory*/
+int db_close(Database **db){
+
+
+    /*Free tables*/
+    for(int i=0; i < (*db)->nrOfTables; i++){
+
+        for(int e=0; e<(*db)->tables[i]->nrOfColumns; e++){
+
+            /*
+            Write dirty elements to file and
+            Free elements
+            */
+            for(int f=0; f<(*db)->tables[i]->columns[e]->nrOfElements; f++){
+                /*Element value*/
+                free((*db)->tables[i]->columns[e]->elements[f]->elem);
+                /*Element struct*/
+                free((*db)->tables[i]->columns[e]->elements[f]);
+            }
+        /*Free columns*/
+
+        free((*db)->tables[i]->columns[e]->name);
+        free((*db)->tables[i]->columns[e]->elements);
+        free((*db)->tables[i]->columns[e]);
+        }
+
+        free((*db)->tables[i]->columns);
+
+        /*Free tables*/
+        free((*db)->tables[i]->name);
+        free((*db)->tables[i]);
+    }
+
+    free((*db)->tables);
+
+    /*Free database*/
+    free((*db)->name);
+    free(*db);
 }
