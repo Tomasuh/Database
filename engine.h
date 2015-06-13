@@ -1,3 +1,6 @@
+#include <stdbool.h>
+#include <uuid/uuid.h>
+
 #include "error_codes.h"
 
 #ifndef ENGINE_H_INCLUDED
@@ -7,7 +10,6 @@ typedef char *Element;
 typedef char *Name;
 
 typedef unsigned int Type;
-
 /*
 database types
 string
@@ -23,6 +25,7 @@ float*/
 
 typedef struct{
    Element  elem;
+   bool dirty;
 }Value;
 
 typedef struct{
@@ -36,6 +39,8 @@ typedef struct{
     Name name;
     Column **columns;
     int nrOfColumns;
+    bool *delete_rows;
+    char *row_ID;
 }Table;
 
 typedef struct{
@@ -51,4 +56,5 @@ int db_AddColumn(Database *db, Name table, Name column, Type columnType);
 int db_AddColumns(Database *db, Name table, Name *columns, int nrOfColumns, Type *columnType);
 int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element *elements);
 int db_insertElem(Database *db, Name table, Name column, Element element);
+int db_close(Database **db);
 #endif // ENGINE_H_INCLUDED

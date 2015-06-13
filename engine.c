@@ -3,6 +3,7 @@
 #include "engine.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 int main()
 {
     //Database myOwn;
@@ -110,7 +111,7 @@ int db_AddTables(Database *db, Name *db_TableNames,int nrOfTables){
         t = malloc(sizeof(Table));
         t->name = (Name) strdup(db_TableNames[i]);
         t->nrOfColumns = 0;
-        t->columns = (Column *) NULL;
+        t->columns = (Column **) NULL;
         db->tables[oldExistingTb+i] = t;
     }
 
