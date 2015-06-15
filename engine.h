@@ -32,15 +32,16 @@ typedef struct{
     Name name;
     Type type;
     Value **elements;
-    int nrOfElements;
+    //int nrOfElements;
 }Column;
 
 typedef struct{
     Name name;
     Column **columns;
     int nrOfColumns;
+    int nrOfRows;
     bool *delete_rows;
-    char *row_ID;
+    char **row_ID;
 }Table;
 
 typedef struct{

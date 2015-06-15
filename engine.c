@@ -112,6 +112,9 @@ int db_AddTables(Database *db, Name *db_TableNames,int nrOfTables){
         t->name = (Name) strdup(db_TableNames[i]);
         t->nrOfColumns = 0;
         t->columns = (Column **) NULL;
+        t->delete_rows = NULL;
+        t->row_ID = NULL;
+
         db->tables[oldExistingTb+i] = t;
     }
 
@@ -157,7 +160,7 @@ int db_AddColumn(Database *db, Name table, Name column, Type columnType){
             db->tables[i]->columns[nrOfColumns-1]->type = columnType;
             db->tables[i]->columns[nrOfColumns-1]->name = strdup(column);
             db->tables[i]->columns[nrOfColumns-1]->elements = NULL;
-            db->tables[i]->columns[nrOfColumns-1]->nrOfElements = 0;
+            db->tables[i]->nrOfRows = 0;
             return SUCCESS;
         }
     }
@@ -195,7 +198,37 @@ int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element 
         if(ret!=SUCCESS){
             return ret;
         }
+
+
     }
+
+    /*Update number of rows, performance improvement laterzz*/
+        for(int i=0; i < db->nrOfTables;i++) {
+        if(strcmp(db->tables[i]->name, table)==0){
+            db->tables[i]->nrOfRows++;
+        }
+    }
+
+
+    /*Set row ID and do memory allocation stuff*/
+    for(int i=0; i < db->nrOfTables;i++) {
+        if(strcmp(db->tables[i]->name, table)==0){
+
+            /*First row to be added?
+              This check could be eliminated by allocating memory in addtable
+            */
+            /*if(db->tables[i]->row_ID==NULL){
+                db->tables[i]->row_ID = malloc(sizeof(char *));
+
+            }
+            else {
+
+            }*/
+        }
+    }
+    //t->row_ID = malloc(37*sizeof(char))
+    //t->delete_rows = malloc(sizeof(bool) * t->nrOfColumns);
+
     return SUCCESS;
 }
 
@@ -208,22 +241,24 @@ int db_insertElem(Database *db, Name table, Name column, Element element){
             for(int e=0; e < db->tables[i]->nrOfColumns; e++){
                 if(strcmp(db->tables[i]->columns[e]->name, column)==0){
 
-                    int nrOfElements = db->tables[i]->columns[e]->nrOfElements;
+                    int nrOfRows = db->tables[i]->nrOfRows;
 
+                    nrOfRows++;
                     /*Malloc or realloc?*/
-                    if(nrOfElements==0){
+                    if(nrOfRows==1){
                         db->tables[i]->columns[e]->elements = malloc(sizeof(Value *));
                     }
                     else{
-                        db->tables[i]->columns[e]->elements = realloc(db->tables[i]->columns[e]->elements,nrOfElements*sizeof(Value *));
+                        db->tables[i]->columns[e]->elements = realloc(db->tables[i]->columns[e]->elements,nrOfRows*sizeof(Value *));
                     }
-                    nrOfElements++;
+
 
                     //Allocate space for element and write value
-                    db->tables[i]->columns[e]->elements[nrOfElements-1] = malloc(sizeof(Value));
-                    db->tables[i]->columns[e]->elements[nrOfElements-1]->elem = strdup(element);
+                    db->tables[i]->columns[e]->elements[nrOfRows-1] = malloc(sizeof(Value));
+                    db->tables[i]->columns[e]->elements[nrOfRows-1]->elem = strdup(element);
                     //Update number of elements
-                    db->tables[i]->columns[e]->nrOfElements=nrOfElements;
+                    db->tables[i]->nrOfRows=nrOfRows;
+
                     return SUCCESS;
 
                 }
@@ -254,8 +289,12 @@ int db_close(Database **db){
             /*
             Write dirty elements to file and
             Free elements
+            Wrong order? should be rows then columns loop order?
             */
-            for(int f=0; f<(*db)->tables[i]->columns[e]->nrOfElements; f++){
+            for(int f=0; f<(*db)->tables[i]->nrOfRows; f++){
+                printf("\nbaaajs%d\n",f);
+                printf("%s\n",(*db)->tables[i]->columns[e]->elements[f]->elem);
+                printf("%p",(*db)->tables[i]->columns[e]->elements[f]->elem);
                 /*Element value*/
                 free((*db)->tables[i]->columns[e]->elements[f]->elem);
                 /*Element struct*/
