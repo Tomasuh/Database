@@ -256,8 +256,6 @@ int db_insertElem(Database *db, Name table, Name column, Element element){
                     //Allocate space for element and write value
                     db->tables[i]->columns[e]->elements[nrOfRows-1] = malloc(sizeof(Value));
                     db->tables[i]->columns[e]->elements[nrOfRows-1]->elem = strdup(element);
-                    //Update number of elements
-                    db->tables[i]->nrOfRows=nrOfRows;
 
                     return SUCCESS;
 
