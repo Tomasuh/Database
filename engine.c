@@ -114,6 +114,7 @@ int db_AddTables(Database *db, Name *db_TableNames,int nrOfTables){
         t->nrOfColumns = 0;
         t->columns = (Column **) NULL;
         t->delete_rows = NULL;
+        t->dirty_rows = NULL;
         t->row_ID = NULL;
 
         db->tables[oldExistingTb+i] = t;
@@ -205,13 +206,14 @@ int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element 
     /*
     Update number of rows
     (Re)allocate and set row ID
-    (Re)allocate rows to deleted array
+    (Re)allocate rows to deleted array and initialise added element to false
+    (Re)allocate rows to dirty array and initialise added element to false
     */
     for(int i=0; i < db->nrOfTables;i++) {
         if(strcmp(db->tables[i]->name, table)==0){
             db->tables[i]->nrOfRows++;
 
-            /*First row to be added?*/
+            /*First row ID to be added?*/
             if(db->tables[i]->row_ID==NULL){
                 db->tables[i]->row_ID = malloc(sizeof(char *));
             }
@@ -227,6 +229,24 @@ int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element 
             uuid_generate_random(uuid);
             //save it as a string
             uuid_unparse(uuid, db->tables[i]->row_ID[db->tables[i]->nrOfRows-1]);
+
+            /*(Re)allocate dirty row array and initialize to false for the inserted row*/
+            if(db->tables[i]->dirty_rows==NULL){
+                db->tables[i]->dirty_rows = (bool *)malloc(sizeof(bool));
+            }
+            else{
+                db->tables[i]->dirty_rows = (bool *) realloc(db->tables[i]->dirty_rows, db->tables[i]->nrOfRows*sizeof(bool));
+            }
+            db->tables[i]->dirty_rows[db->tables[i]->nrOfRows-1] = false;
+
+            /*(Re)allocate delete row array and set to false for the inserted row*/
+            if(db->tables[i]->delete_rows==NULL){
+                db->tables[i]->delete_rows = (bool *)malloc(sizeof(bool));
+            }
+            else{
+                db->tables[i]->delete_rows = (bool *) realloc(db->tables[i]->delete_rows, db->tables[i]->nrOfRows*sizeof(bool));
+            }
+            db->tables[i]->delete_rows[db->tables[i]->nrOfRows-1] = false;
 
             break;
 
@@ -272,6 +292,7 @@ int db_insertElem(Database *db, Name table, Name column, Element element){
 }
 
 void db_select(){
+
 }
 
 void db_delete(){
@@ -313,7 +334,9 @@ int db_close(Database **db){
         /*Free tables*/
         free((*db)->tables[i]->name);
         free((*db)->tables[i]->delete_rows);
+        free((*db)->tables[i]->dirty_rows);
         free((*db)->tables[i]->row_ID);
+
 
         free((*db)->tables[i]);
     }

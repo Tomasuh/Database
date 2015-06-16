@@ -25,7 +25,6 @@ float*/
 
 typedef struct{
    Element  elem;
-   bool dirty;
 }Value;
 
 typedef struct{
@@ -41,6 +40,7 @@ typedef struct{
     int nrOfColumns;
     int nrOfRows;
     bool *delete_rows;
+    bool *dirty_rows;
     char **row_ID;
 }Table;
 
