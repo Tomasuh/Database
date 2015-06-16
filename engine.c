@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <uuid/uuid.h>
 #include <stdlib.h>
 #include "engine.h"
 #include <stdlib.h>
@@ -60,7 +61,7 @@ int main()
     //printf("\nelemVal:%s", db->tables[0]->columns[0]->elements[1]->elem);
     //printf("\nelemVal:%s", db->tables[0]->columns[2]->elements[1]->elem);
 
-    //printf("%d", db->tables[0]->nrOfColumns);
+    printf("%s", db->tables[0]->row_ID[0]);
     db_close(&db);
 
     return 0;
@@ -127,7 +128,6 @@ int db_AddTables(Database *db, Name *db_TableNames,int nrOfTables){
 int db_AddColumns(Database *db, Name table, Name *columns, int nrOfColumns, Type *columnType){
     int ret;
     for (int i=0; i < nrOfColumns; i++){
-        printf("\nColumn tpeeee:%d",columnType[i]);
         ret = db_AddColumn(db, table, columns[i], columnType[i]);
 
         if(ret!=SUCCESS) {
@@ -202,10 +202,32 @@ int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element 
 
     }
 
-    /*Update number of rows, performance improvement laterzz*/
-        for(int i=0; i < db->nrOfTables;i++) {
+    /*
+    Update number of rows
+    (Re)allocate and set row ID
+    (Re)allocate rows to deleted array
+    */
+    for(int i=0; i < db->nrOfTables;i++) {
         if(strcmp(db->tables[i]->name, table)==0){
             db->tables[i]->nrOfRows++;
+
+            /*First row to be added?*/
+            if(db->tables[i]->row_ID==NULL){
+                db->tables[i]->row_ID = malloc(sizeof(char *));
+            }
+            else{
+                db->tables[i]->row_ID = realloc(db->tables[i]->row_ID, db->tables[i]->nrOfRows*sizeof(char *));
+            }
+            /*Allocate and set row ID*/
+            db->tables[i]->row_ID[db->tables[i]->nrOfRows-1] = malloc(37*sizeof(char));
+
+            uuid_t uuid;
+
+            // generate row ID
+            uuid_generate_random(uuid);
+            //save it as a string
+            uuid_unparse(uuid, db->tables[i]->row_ID[db->tables[i]->nrOfRows-1]);
+
         }
     }
 
@@ -241,9 +263,8 @@ int db_insertElem(Database *db, Name table, Name column, Element element){
             for(int e=0; e < db->tables[i]->nrOfColumns; e++){
                 if(strcmp(db->tables[i]->columns[e]->name, column)==0){
 
-                    int nrOfRows = db->tables[i]->nrOfRows;
+                    int nrOfRows = db->tables[i]->nrOfRows+1;
 
-                    nrOfRows++;
                     /*Malloc or realloc?*/
                     if(nrOfRows==1){
                         db->tables[i]->columns[e]->elements = malloc(sizeof(Value *));
@@ -290,13 +311,12 @@ int db_close(Database **db){
             Wrong order? should be rows then columns loop order?
             */
             for(int f=0; f<(*db)->tables[i]->nrOfRows; f++){
-                printf("\nbaaajs%d\n",f);
-                printf("%s\n",(*db)->tables[i]->columns[e]->elements[f]->elem);
-                printf("%p",(*db)->tables[i]->columns[e]->elements[f]->elem);
                 /*Element value*/
                 free((*db)->tables[i]->columns[e]->elements[f]->elem);
                 /*Element struct*/
                 free((*db)->tables[i]->columns[e]->elements[f]);
+                /*Free row ID*/
+                free((*db)->tables[i]->row_ID[f]);
             }
 
         /*Free columns*/
@@ -310,6 +330,9 @@ int db_close(Database **db){
 
         /*Free tables*/
         free((*db)->tables[i]->name);
+        free((*db)->tables[i]->delete_rows);
+        free((*db)->tables[i]->row_ID);
+
         free((*db)->tables[i]);
     }
 
