@@ -228,28 +228,10 @@ int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element 
             //save it as a string
             uuid_unparse(uuid, db->tables[i]->row_ID[db->tables[i]->nrOfRows-1]);
 
+            break;
+
         }
     }
-
-
-    /*Set row ID and do memory allocation stuff*/
-    for(int i=0; i < db->nrOfTables;i++) {
-        if(strcmp(db->tables[i]->name, table)==0){
-
-            /*First row to be added?
-              This check could be eliminated by allocating memory in addtable
-            */
-            /*if(db->tables[i]->row_ID==NULL){
-                db->tables[i]->row_ID = malloc(sizeof(char *));
-
-            }
-            else {
-
-            }*/
-        }
-    }
-    //t->row_ID = malloc(37*sizeof(char))
-    //t->delete_rows = malloc(sizeof(bool) * t->nrOfColumns);
 
     return SUCCESS;
 }
