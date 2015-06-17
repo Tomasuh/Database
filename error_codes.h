@@ -10,4 +10,5 @@
 #define TABLE_NOT_FOUND     5
 #define COLUMN_NOT_FOUND    6
 #define WRONG_NR_OF_VALUES  7
+#define ROWID_NOT_FOUND     8
 #endif // ERRORCODES_H_INCLUDED

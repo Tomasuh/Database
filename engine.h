@@ -57,5 +57,8 @@ int db_AddColumn(Database *db, Name table, Name column, Type columnType);
 int db_AddColumns(Database *db, Name table, Name *columns, int nrOfColumns, Type *columnType);
 int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element *elements);
 int db_insertElem(Database *db, Name table, Name column, Element element);
+int db_deleteRows(Database *db, char **rowID, int nrOfRows, Name table);
+int db_deleteRow(Database *db, char *rowID, Name table, int tableIndex);
+int db_deleteWhere(Name table, Name *columnsToMatch, int nrOfColumns, Name *valuesToMatch, Name *columnToReturn);
 int db_close(Database **db);
 #endif // ENGINE_H_INCLUDED

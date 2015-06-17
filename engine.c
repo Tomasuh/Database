@@ -237,7 +237,7 @@ int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element 
             else{
                 db->tables[i]->dirty_rows = (bool *) realloc(db->tables[i]->dirty_rows, db->tables[i]->nrOfRows*sizeof(bool));
             }
-            db->tables[i]->dirty_rows[db->tables[i]->nrOfRows-1] = false;
+            db->tables[i]->dirty_rows[db->tables[i]->nrOfRows-1] = true;
 
             /*(Re)allocate delete row array and set to false for the inserted row*/
             if(db->tables[i]->delete_rows==NULL){
@@ -291,11 +291,46 @@ int db_insertElem(Database *db, Name table, Name column, Element element){
     return TABLE_NOT_FOUND;
 }
 
-void db_select(){
+int db_select(){
 
 }
 
-void db_delete(){
+int db_deleteRows(Database *db, char **rowID, int nrOfRows, Name table){
+    int tableIndex = -1;
+    int ret;
+    for(int i=0; i < db->nrOfTables;i++) {
+        if(strcmp(db->tables[i]->name, table)==0){
+            tableIndex = i;
+            break;
+        }
+    }
+
+    if(tableIndex==-1){
+        return TABLE_NOT_FOUND;
+    }
+
+    for(int i=0; i < nrOfRows; i++){
+        ret = db_deleteRow(db, rowID[i], table, tableIndex);
+    }
+}
+
+int db_deleteRow(Database *db, char *rowID, Name table, int tableIndex){
+    for(int i=0; i<db->tables[i]->nrOfRows; i++){
+        /*Match row ID*/
+        if(strcmp(db->tables[tableIndex]->row_ID[i], rowID)==0){
+            db->tables[tableIndex]->delete_rows[i] = true;
+            db->tables[tableIndex]->dirty_rows[i] = true;
+            return SUCCESS;
+        }
+    }
+    return ROWID_NOT_FOUND;
+
+}
+
+
+/*select from t*/
+int db_deleteWhere(Name table, Name *columnsToMatch, int nrOfColumns, Name *valuesToMatch, Name *columnToReturn){
+
 }
 
 
