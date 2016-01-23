@@ -2,7 +2,6 @@
 
 
 ###TODO
-* Memory allocation error checking
 * File format specification
 * Write parser
 * Functions to write and read from database files

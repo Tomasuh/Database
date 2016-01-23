@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+
+
 int main()
 {
     //Database myOwn;
@@ -31,7 +33,7 @@ int main()
     db_Create(&db, "Databasen");
     printf("%s",db->name);
 
-    int *ec = malloc(sizeof(int));
+    int *ec = allocateBytes(sizeof(int));
 
     Name tbNames[] = {"Apa","Fisk","Ko"};
     *ec = db_AddTables(db, tbNames, 3);
@@ -69,9 +71,10 @@ int main()
 
 void db_Create(Database **db, Name db_Database_Name){
 
-    *db = malloc(sizeof(Database));
+    *db = allocateBytes(sizeof(Database));
 
-    (*db)->name = strdup((const char *) db_Database_Name);
+    //(*db)->name = strdup((const char *) db_Database_Name);
+    (*db)->name = strdupErrorChecked((const char *) db_Database_Name);
 
     /*Empty database*/
     (*db)->tables = NULL;
@@ -99,18 +102,20 @@ int db_AddTables(Database *db, Name *db_TableNames,int nrOfTables){
     int newSize = (oldExistingTb+nrOfTables)*sizeof(Table *);
 
     if(oldExistingTb>0){
-        db->tables = realloc(db->tables, newSize);
+        //db->tables = realloc(db->tables, newSize);
+        reAllocateBytes((void **) &db->tables, newSize);
     }
     else {
-        db->tables = malloc(newSize);
+        db->tables = allocateBytes(newSize);
     }
 
     /*
     Allocate size for each table and add them to the database.
     */
     for (int i=0; i < nrOfTables; i++){
-        t = malloc(sizeof(Table));
-        t->name = (Name) strdup(db_TableNames[i]);
+        t = allocateBytes(sizeof(Table));
+        //t->name = (Name) strdup(db_TableNames[i]);
+        t->name = (Name) strdupErrorChecked(db_TableNames[i]);
         t->nrOfColumns = 0;
         t->columns = (Column **) NULL;
         t->delete_rows = NULL;
@@ -149,17 +154,18 @@ int db_AddColumn(Database *db, Name table, Name column, Type columnType){
             int nrOfColumns = db->tables[i]->nrOfColumns;
             /*First time allocating memory for a column in the table*/
             if(nrOfColumns==1){
-                db->tables[i]->columns = malloc(nrOfColumns*sizeof(Column *));
+                db->tables[i]->columns = allocateBytes(nrOfColumns*sizeof(Column *));
             }
             /*Else reallocate the list of pointers*/
             else{
-                db->tables[i]->columns = realloc(db->tables[i]->columns,nrOfColumns*sizeof(Column *));
+                //db->tables[i]->columns = realloc(db->tables[i]->columns,nrOfColumns*sizeof(Column *));
+                reAllocateBytes((void **) &db->tables[i]->columns,nrOfColumns*sizeof(Column *));
             }
 
             //Allocate space for the column and set type
-            db->tables[i]->columns[nrOfColumns-1] = malloc(sizeof(Column));
+            db->tables[i]->columns[nrOfColumns-1] = allocateBytes(sizeof(Column));
             db->tables[i]->columns[nrOfColumns-1]->type = columnType;
-            db->tables[i]->columns[nrOfColumns-1]->name = strdup(column);
+            db->tables[i]->columns[nrOfColumns-1]->name = strdupErrorChecked(column);
             db->tables[i]->columns[nrOfColumns-1]->elements = NULL;
             db->tables[i]->nrOfRows = 0;
             return SUCCESS;
@@ -215,13 +221,14 @@ int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element 
 
             /*First row ID to be added?*/
             if(db->tables[i]->row_ID==NULL){
-                db->tables[i]->row_ID = malloc(sizeof(char *));
+                db->tables[i]->row_ID = allocateBytes(sizeof(char *));
             }
             else{
-                db->tables[i]->row_ID = realloc(db->tables[i]->row_ID, db->tables[i]->nrOfRows*sizeof(char *));
+                //db->tables[i]->row_ID = realloc(db->tables[i]->row_ID, db->tables[i]->nrOfRows*sizeof(char *));
+                reAllocateBytes((void **) &db->tables[i]->row_ID, db->tables[i]->nrOfRows*sizeof(char *));
             }
             /*Allocate and set row ID*/
-            db->tables[i]->row_ID[db->tables[i]->nrOfRows-1] = malloc(37*sizeof(char));
+            db->tables[i]->row_ID[db->tables[i]->nrOfRows-1] = allocateBytes(37*sizeof(char));
 
             uuid_t uuid;
 
@@ -232,19 +239,21 @@ int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element 
 
             /*(Re)allocate dirty row array and initialize to false for the inserted row*/
             if(db->tables[i]->dirty_rows==NULL){
-                db->tables[i]->dirty_rows = (bool *)malloc(sizeof(bool));
+                db->tables[i]->dirty_rows = (bool *)allocateBytes(sizeof(bool));
             }
             else{
-                db->tables[i]->dirty_rows = (bool *) realloc(db->tables[i]->dirty_rows, db->tables[i]->nrOfRows*sizeof(bool));
+                //db->tables[i]->dirty_rows = (bool *) realloc(db->tables[i]->dirty_rows, db->tables[i]->nrOfRows*sizeof(bool));
+                reAllocateBytes((void **) &db->tables[i]->dirty_rows, db->tables[i]->nrOfRows*sizeof(bool));
             }
             db->tables[i]->dirty_rows[db->tables[i]->nrOfRows-1] = true;
 
             /*(Re)allocate delete row array and set to false for the inserted row*/
             if(db->tables[i]->delete_rows==NULL){
-                db->tables[i]->delete_rows = (bool *)malloc(sizeof(bool));
+                db->tables[i]->delete_rows = (bool *)allocateBytes(sizeof(bool));
             }
             else{
-                db->tables[i]->delete_rows = (bool *) realloc(db->tables[i]->delete_rows, db->tables[i]->nrOfRows*sizeof(bool));
+                //db->tables[i]->delete_rows = (bool *) realloc(db->tables[i]->delete_rows, db->tables[i]->nrOfRows*sizeof(bool));
+                reAllocateBytes((void**) &db->tables[i]->delete_rows, db->tables[i]->nrOfRows*sizeof(bool));
             }
             db->tables[i]->delete_rows[db->tables[i]->nrOfRows-1] = false;
 
@@ -269,16 +278,17 @@ int db_insertElem(Database *db, Name table, Name column, Element element){
 
                     /*Malloc or realloc?*/
                     if(nrOfRows==1){
-                        db->tables[i]->columns[e]->elements = malloc(sizeof(Value *));
+                        db->tables[i]->columns[e]->elements = allocateBytes(sizeof(Value *));
                     }
                     else{
-                        db->tables[i]->columns[e]->elements = realloc(db->tables[i]->columns[e]->elements,nrOfRows*sizeof(Value *));
+                        //db->tables[i]->columns[e]->elements = realloc(db->tables[i]->columns[e]->elements,nrOfRows*sizeof(Value *));
+                        reAllocateBytes((void **) &db->tables[i]->columns[e]->elements,nrOfRows*sizeof(Value *));
                     }
 
 
                     //Allocate space for element and write value
-                    db->tables[i]->columns[e]->elements[nrOfRows-1] = malloc(sizeof(Value));
-                    db->tables[i]->columns[e]->elements[nrOfRows-1]->elem = strdup(element);
+                    db->tables[i]->columns[e]->elements[nrOfRows-1] = allocateBytes(sizeof(Value));
+                    db->tables[i]->columns[e]->elements[nrOfRows-1]->elem = strdupErrorChecked(element);
 
                     return SUCCESS;
 
@@ -292,7 +302,7 @@ int db_insertElem(Database *db, Name table, Name column, Element element){
 }
 
 int db_select(){
-
+    return 0;
 }
 
 int db_deleteRows(Database *db, char **rowID, int nrOfRows, Name table){
@@ -311,7 +321,11 @@ int db_deleteRows(Database *db, char **rowID, int nrOfRows, Name table){
 
     for(int i=0; i < nrOfRows; i++){
         ret = db_deleteRow(db, rowID[i], table, tableIndex);
+        if(ret==COLUMN_NOT_FOUND){
+            //do something :)
+        }
     }
+    return SUCCESS;
 }
 
 int db_deleteRow(Database *db, char *rowID, Name table, int tableIndex){
@@ -330,7 +344,7 @@ int db_deleteRow(Database *db, char *rowID, Name table, int tableIndex){
 
 /*select from t*/
 int db_deleteWhere(Name table, Name *columnsToMatch, int nrOfColumns, Name *valuesToMatch, Name *columnToReturn){
-
+    return -1;
 }
 
 
@@ -383,4 +397,30 @@ int db_close(Database **db){
     free(*db);
 
     return SUCCESS;
+}
+
+void* allocateBytes(int nrOfBytes){
+    void* retPointer = malloc(nrOfBytes);
+
+    if(!retPointer){
+        fprintf(stderr, "Failed to allocate %d bytes, exiting....", nrOfBytes);
+    }
+    return retPointer;
+}
+
+void reAllocateBytes(void** memory,int nrOfBytes){
+    *memory = realloc(*memory, nrOfBytes);
+
+    if(!memory){
+        fprintf(stderr, "Failed to reallocate %d bytes, exiting....", nrOfBytes);
+    }
+}
+
+char* strdupErrorChecked(const char* str){
+    char* duplicate = strdup(str);
+
+    if(!duplicate){
+        fprintf(stderr, "Failed to run strdup on string \"%s\", exiting....", str);
+    }
+    return duplicate;
 }

@@ -6,8 +6,8 @@
 #ifndef ENGINE_H_INCLUDED
 #define ENGINE_H_INCLUDED
 
-typedef char *Element;
-typedef char *Name;
+typedef char* Element;
+typedef char* Name;
 
 typedef unsigned int Type;
 /*
@@ -61,4 +61,7 @@ int db_deleteRows(Database *db, char **rowID, int nrOfRows, Name table);
 int db_deleteRow(Database *db, char *rowID, Name table, int tableIndex);
 int db_deleteWhere(Name table, Name *columnsToMatch, int nrOfColumns, Name *valuesToMatch, Name *columnToReturn);
 int db_close(Database **db);
+void* allocateBytes(int nrOfBytes);
+void reAllocateBytes(void** memory,int nrOfBytes);
+char* strdupErrorChecked(const char* str);
 #endif // ENGINE_H_INCLUDED
