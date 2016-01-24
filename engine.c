@@ -404,6 +404,7 @@ void* allocateBytes(int nrOfBytes){
 
     if(!retPointer){
         fprintf(stderr, "Failed to allocate %d bytes, exiting....", nrOfBytes);
+        exit(0);
     }
     return retPointer;
 }
@@ -413,6 +414,7 @@ void reAllocateBytes(void** memory,int nrOfBytes){
 
     if(!memory){
         fprintf(stderr, "Failed to reallocate %d bytes, exiting....", nrOfBytes);
+        exit(0);
     }
 }
 
@@ -421,6 +423,7 @@ char* strdupErrorChecked(const char* str){
 
     if(!duplicate){
         fprintf(stderr, "Failed to run strdup on string \"%s\", exiting....", str);
+        exit(0);
     }
     return duplicate;
 }
