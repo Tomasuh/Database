@@ -68,4 +68,8 @@ int db_close(Database **db);
 void* allocateBytes(int nrOfBytes);
 void reAllocateBytes(void** memory,int nrOfBytes);
 char* strdupErrorChecked(const char* str);
+int db_free_database(Database **db);
+int db_free_table(Table *table);
+int db_free_column(Column *column, int nrOfRows);
+int db_free_value(Value *value);
 #endif // ENGINE_H_INCLUDED

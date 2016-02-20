@@ -26,16 +26,23 @@ int main()
     db_Create(&db, "Databasen");
     printf("%s",db->name);
 
-    int *ec = allocateBytes(sizeof(int));
+    int ec;
 
     Name tbNames[] = {"Apa","Fisk","Ko"};
-    *ec = db_AddTables(db, tbNames, 3);
+    ec = db_AddTables(db, tbNames, 3);
     //printf("%s",db->tables[0]->name);
 
     //db_AddColumn(db,"Apa","fjong", 1);
 
     int ret = db_AddColumns(db,"Apa",columns,3,typess);
+    
+    for(int i=0; i < 2000; i++){
+        ret = db_insert(db, "Apa", columns, 3, elems);
+    }
 
+    db_free_database(&db);
+
+    return 0;
     printf("apa%d",ret);
     //int db_AddColumns(Database *db, Name table, Name *columns, int nrOfColumns, Type *columnType){
     /*printf("Column type:%d\n", db->tables[0]->columns[2]->type);
@@ -47,9 +54,7 @@ int main()
     //db_insertElem(db, "Apa","fjong","EPA");
     //printf("\n%s", db->tables[0]->columns[0]->elements[0]->elem);
     //(Database *db, Name table, Name column, Element element)
-    for(int i=0; i < 20; i++){
-        ret = db_insert(db, "Apa", columns, 3, elems);
-    }
+
     printf("%d ret", ret);
     //ret = db_insert(db, "Apa", columns, 3, elems);
     printf("%d ret", ret);
@@ -59,14 +64,14 @@ int main()
     //printf("\nelemVal:%s", db->tables[0]->columns[2]->elements[1]->elem);
 
     printf("%s", db->tables[0]->row_ID[0]);
-    db_close(&db);
+    //db_close(&db);
 
     return 0;
 }
 
 void db_Create(Database **db, Name db_Database_Name){
 
-    *db = allocateBytes(sizeof(Database));
+    *db = (Database *) allocateBytes(sizeof(Database));
 
     //(*db)->name = strdup((const char *) db_Database_Name);
     (*db)->name = strdupErrorChecked((const char *) db_Database_Name);
@@ -395,54 +400,56 @@ int db_deleteWhere(Name table, Name *columnsToMatch, int nrOfColumns, Name *valu
     return -1;
 }
 
+int db_free_database(Database **db){
+    free((*db)->name);
 
-/*Free all allocated memory*/
-int db_close(Database **db){
-
-
-    /*Free tables*/
-    for(int i=0; i < (*db)->nrOfTables; i++){
-        for(int e=0; e<(*db)->tables[i]->nrOfColumns; e++){
-            printf("Number of columns: %d", (*db)->tables[i]->nrOfColumns);
-            /*
-            Write dirty elements to file and
-            Free elements
-            Wrong order? should be rows then columns loop order?
-            */
-            for(int f=0; f<(*db)->tables[i]->nrOfRows; f++){
-                /*Element value*/
-                free((*db)->tables[i]->columns[e]->elements[f]->elem);
-                /*Element struct*/
-                free((*db)->tables[i]->columns[e]->elements[f]);
-                /*Free row ID*/
-                free((*db)->tables[i]->row_ID[f]);
-            }
-
-        /*Free columns*/
-        free((*db)->tables[i]->columns[e]->name);
-        free((*db)->tables[i]->columns[e]->elements);
-        free((*db)->tables[i]->columns[e]);
-        }
-
-        free((*db)->tables[i]->columns);
-
-        /*Free tables*/
-        free((*db)->tables[i]->name);
-        free((*db)->tables[i]->delete_rows);
-        free((*db)->tables[i]->dirty_rows);
-        free((*db)->tables[i]->row_ID);
-
-
+    for(int i=0; i<(*db)->nrOfTables; i++){
+        db_free_table((*db)->tables[i]);
         free((*db)->tables[i]);
     }
-
+    
     free((*db)->tables);
-
-    /*Free database*/
-    free((*db)->name);
     free(*db);
 
-    return SUCCESS;
+    return 0;
+}
+
+int db_free_table(Table *table){
+    free(table->name);
+
+    for(int i=0; i<table->nrOfColumns; i++){
+        db_free_column(table->columns[i], table->nrOfRows);
+        free(table->columns[i]);
+    }
+
+    free(table->columns);
+
+    for(int i=0; i<table->nrOfRows; i++){
+
+        free(table->row_ID[i]);
+    }
+
+    free(table->row_ID);
+    free(table->delete_rows);
+    free(table->dirty_rows);
+
+    return 0;
+}
+
+int db_free_column(Column *column, int nrOfRows){
+    free(column->name);
+    for(int i=0; i < nrOfRows; i++){
+        db_free_value(column->elements[i]);
+        free(column->elements[i]);
+    }
+
+    free(column->elements);
+    return 0;
+}
+
+int db_free_value(Value *value){
+    free(value->elem);
+    return 0;
 }
 
 void* allocateBytes(int nrOfBytes){
