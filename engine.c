@@ -1,11 +1,4 @@
-#include <stdio.h>
-#include <uuid/uuid.h>
-#include <stdlib.h>
 #include "engine.h"
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
-
 
 int main()
 {
@@ -54,9 +47,11 @@ int main()
     //db_insertElem(db, "Apa","fjong","EPA");
     //printf("\n%s", db->tables[0]->columns[0]->elements[0]->elem);
     //(Database *db, Name table, Name column, Element element)
-    ret = db_insert(db, "Apa", columns, 3, elems);
+    for(int i=0; i < 20; i++){
+        ret = db_insert(db, "Apa", columns, 3, elems);
+    }
     printf("%d ret", ret);
-    ret = db_insert(db, "Apa", columns, 3, elems);
+    //ret = db_insert(db, "Apa", columns, 3, elems);
     printf("%d ret", ret);
     //db_insert()
     //printf("nrElem%d",db->tables[0]->columns[0]->nrOfElements);
@@ -82,10 +77,17 @@ void db_Create(Database **db, Name db_Database_Name){
 }
 
 /*
+Function: Adds a number of tables to the database.
 
+Parameters:
+    Database *db, database pointer
+    Name *db_TableNames string array of table names.
+    int nrOfTables, the number of tables to be added.
 
+Returns:
+    SUCCESS or DUPLICATE_TABLE
 */
-int db_AddTables(Database *db, Name *db_TableNames,int nrOfTables){
+int db_AddTables(Database *db, Name *db_TableNames, int nrOfTables){
     Table *t;
     int oldExistingTb = db->nrOfTables;
 
@@ -130,7 +132,22 @@ int db_AddTables(Database *db, Name *db_TableNames,int nrOfTables){
     return SUCCESS;
 }
 
+/*
+Function: Adds a number of columns to the database.
 
+Parameters:
+    Database *db, database pointer
+    Name table, the name of the table to add columns to.
+    Name *columns, the columns to add.
+    int nrOfColumns, the number of columns to be added.
+    Type *columnType, the type of each column.
+
+Returns:
+    SUCCESS or DUPLICATE_TABLE
+
+Note:
+    columns and columnType comes in the same order. Change?
+*/
 int db_AddColumns(Database *db, Name table, Name *columns, int nrOfColumns, Type *columnType){
     int ret;
     for (int i=0; i < nrOfColumns; i++){
@@ -145,6 +162,18 @@ int db_AddColumns(Database *db, Name table, Name *columns, int nrOfColumns, Type
 }
 
 
+/*
+Function: Adds a columnsto the database.
+
+Parameters:
+    Database *db, database pointer
+    Name table, the name of the table to add column to.
+    Name column, the column to add.
+    Type columnType, the type of the column.
+
+Returns:
+    SUCCESS or DUPLICATE_TABLE
+*/
 int db_AddColumn(Database *db, Name table, Name column, Type columnType){
     for(int i=0; i < db->nrOfTables; i++){
         /*Match on correct table*/
@@ -152,13 +181,12 @@ int db_AddColumn(Database *db, Name table, Name column, Type columnType){
             db->tables[i]->nrOfColumns += 1;
 
             int nrOfColumns = db->tables[i]->nrOfColumns;
-            /*First time allocating memory for a column in the table*/
+            /*First time allocating memory for a column in the table?*/
             if(nrOfColumns==1){
                 db->tables[i]->columns = allocateBytes(nrOfColumns*sizeof(Column *));
             }
             /*Else reallocate the list of pointers*/
             else{
-                //db->tables[i]->columns = realloc(db->tables[i]->columns,nrOfColumns*sizeof(Column *));
                 reAllocateBytes((void **) &db->tables[i]->columns,nrOfColumns*sizeof(Column *));
             }
 
@@ -183,6 +211,19 @@ Database db_load(Name fileName){
 
 //Database db_initialize(Database db,int db_Name_Length)
 
+/*
+Function: Creates a row with elements
+
+Parameters:
+    Database *db, database pointer
+    Name table, the name of the table to add row to.
+    Name *columns, the column to add elements to.
+    int nrOfColumns, the number of columns.
+    Element *elements, the elements.
+
+Returns:
+    SUCCESS or DUPLICATE_TABLE
+*/
 int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element *elements){
     int ret;
 
@@ -197,7 +238,6 @@ int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element 
             }
         }
     }
-
 
 
     for(int i=0; i<nrOfColumns; i++){
@@ -224,7 +264,6 @@ int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element 
                 db->tables[i]->row_ID = allocateBytes(sizeof(char *));
             }
             else{
-                //db->tables[i]->row_ID = realloc(db->tables[i]->row_ID, db->tables[i]->nrOfRows*sizeof(char *));
                 reAllocateBytes((void **) &db->tables[i]->row_ID, db->tables[i]->nrOfRows*sizeof(char *));
             }
             /*Allocate and set row ID*/
@@ -242,7 +281,6 @@ int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element 
                 db->tables[i]->dirty_rows = (bool *)allocateBytes(sizeof(bool));
             }
             else{
-                //db->tables[i]->dirty_rows = (bool *) realloc(db->tables[i]->dirty_rows, db->tables[i]->nrOfRows*sizeof(bool));
                 reAllocateBytes((void **) &db->tables[i]->dirty_rows, db->tables[i]->nrOfRows*sizeof(bool));
             }
             db->tables[i]->dirty_rows[db->tables[i]->nrOfRows-1] = true;
@@ -252,7 +290,6 @@ int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element 
                 db->tables[i]->delete_rows = (bool *)allocateBytes(sizeof(bool));
             }
             else{
-                //db->tables[i]->delete_rows = (bool *) realloc(db->tables[i]->delete_rows, db->tables[i]->nrOfRows*sizeof(bool));
                 reAllocateBytes((void**) &db->tables[i]->delete_rows, db->tables[i]->nrOfRows*sizeof(bool));
             }
             db->tables[i]->delete_rows[db->tables[i]->nrOfRows-1] = false;
@@ -265,6 +302,18 @@ int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element 
     return SUCCESS;
 }
 
+/*
+Function: Insert element into specified table column.
+
+Parameters:
+    Database *db, database pointer
+    Name table, the name of the table to add row to.
+    Name columns, the column to add element to.
+    Element elements, the element.
+
+Returns:
+    SUCCESS or DUPLICATE_TABLE
+*/
 int db_insertElem(Database *db, Name table, Name column, Element element){
     /*Find correct table*/
     for(int i=0; i < db->nrOfTables;i++) {
@@ -281,7 +330,6 @@ int db_insertElem(Database *db, Name table, Name column, Element element){
                         db->tables[i]->columns[e]->elements = allocateBytes(sizeof(Value *));
                     }
                     else{
-                        //db->tables[i]->columns[e]->elements = realloc(db->tables[i]->columns[e]->elements,nrOfRows*sizeof(Value *));
                         reAllocateBytes((void **) &db->tables[i]->columns[e]->elements,nrOfRows*sizeof(Value *));
                     }
 
@@ -354,9 +402,8 @@ int db_close(Database **db){
 
     /*Free tables*/
     for(int i=0; i < (*db)->nrOfTables; i++){
-
         for(int e=0; e<(*db)->tables[i]->nrOfColumns; e++){
-
+            printf("Number of columns: %d", (*db)->tables[i]->nrOfColumns);
             /*
             Write dirty elements to file and
             Free elements
@@ -372,7 +419,6 @@ int db_close(Database **db){
             }
 
         /*Free columns*/
-
         free((*db)->tables[i]->columns[e]->name);
         free((*db)->tables[i]->columns[e]->elements);
         free((*db)->tables[i]->columns[e]);

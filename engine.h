@@ -1,5 +1,9 @@
 #include <stdbool.h>
 #include <uuid/uuid.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "error_codes.h"
 
