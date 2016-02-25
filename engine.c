@@ -1,6 +1,7 @@
-#include "engine.h"
+#include <engine.h>
+#include <error_codes.h>
 
-int main()
+int mains()
 {
     //Database myOwn;
     printf("Hello world!\n");
@@ -36,7 +37,7 @@ int main()
 
     int ret = db_AddColumns(db,"Apa",columns,3,typess);
     
-    for(int i=0; i < 2000; i++){
+    for(int i=0; i < 2000000; i++){
         ret = db_insert(db, "Apa", columns, 3, elems);
     }
 
