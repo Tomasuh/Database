@@ -288,9 +288,14 @@ int db_select(){
     return 0;
 }
 
+/*select from t*/
+int db_deleteWhere(Name table, Name *columnsToMatch, int nrOfColumns, Name *valuesToMatch, Name *columnToReturn){
+    return -1;
+}
+
+
 int db_deleteRows(Database *db, char **rowID, int nrOfRows, Name table){
     int tableInd = tableIndex(db, table);
-    printf("HEJ");
     if(tableInd==-1){
         printf("Table %s does not exist", table);
         return TABLE_NOT_FOUND;
@@ -313,18 +318,19 @@ int db_deleteRow(Table *table, char *rowID){
         /*Match row ID*/
         if(!strcmp(table->row_ID[i], rowID)){
             table->delete_rows[i] = true;
-            table->dirty_rows[i] = true;
+
+            for(int ii=0; ii<table->nrOfColumns; ii++){
+                printf("EPA\n");
+                db_free_value(table->columns[ii]->elements[i]);
+                table->columns[ii]->elements[i]=NULL;
+            }
+
+            table->free_elems++;
             return SUCCESS;
         }
     }
     return ROWID_NOT_FOUND;
 
-}
-
-
-/*select from t*/
-int db_deleteWhere(Name table, Name *columnsToMatch, int nrOfColumns, Name *valuesToMatch, Name *columnToReturn){
-    return -1;
 }
 
 int db_close(Database **db){
@@ -359,7 +365,7 @@ int db_free_table(Table *table){
     free(table->name);
 
     for(int i=0; i<table->nrOfColumns; i++){
-        db_free_column(table->columns[i], table->nrOfRows);
+        db_free_column(table->columns[i], table->nrOfRows, table->dirty_rows);
         free(table->columns[i]);
     }
 
@@ -377,10 +383,13 @@ int db_free_table(Table *table){
     return 0;
 }
 
-int db_free_column(Column *column, int nrOfRows){
+int db_free_column(Column *column, int nrOfRows, bool *delete_rows){
     free(column->name);
+
     for(int i=0; i < nrOfRows; i++){
-        db_free_value(column->elements[i]);
+        if(delete_rows[i]==false){
+            db_free_value(column->elements[i]);
+        }
         free(column->elements[i]);
     }
 

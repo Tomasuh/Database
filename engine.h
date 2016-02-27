@@ -46,6 +46,7 @@ typedef struct{
     bool *delete_rows;
     bool *dirty_rows;
     char **row_ID;
+    unsigned int free_elems;
 }Table;
 
 typedef struct{
@@ -68,7 +69,7 @@ int db_close(Database **db);
 
 int db_free_database(Database **db);
 int db_free_table(Table *table);
-int db_free_column(Column *column, int nrOfRows);
+int db_free_column(Column *column, int nrOfRows, bool *delete_rows);
 int db_free_value(Value *value);
 
 void* allocateBytes(int nrOfBytes);
