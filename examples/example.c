@@ -1,11 +1,11 @@
-
+#include <database.h>
 
 int main()
 {
     //Database myOwn;
     printf("Hello world!\n");
 
-
+    //gcc example.c -o example -std=gnu99 -ldatabase
 
     /*
     Create following database structure:
