@@ -61,15 +61,22 @@ int db_AddColumn(Database *db, Name table, Name column, Type columnType);
 int db_AddColumns(Database *db, Name table, Name *columns, int nrOfColumns, Type *columnType);
 int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element *elements);
 int db_insertElem(Database *db, Name table, Name column, Element element);
-int db_deleteRows(Database *db, char **rowID, int nrOfRows, Name table);
-int db_deleteRow(Database *db, char *rowID, Name table, int tableIndex);
 int db_deleteWhere(Name table, Name *columnsToMatch, int nrOfColumns, Name *valuesToMatch, Name *columnToReturn);
 int db_close(Database **db);
-void* allocateBytes(int nrOfBytes);
-void reAllocateBytes(void** memory,int nrOfBytes);
-char* strdupErrorChecked(const char* str);
+
+/*Internal functions used*/
+
 int db_free_database(Database **db);
 int db_free_table(Table *table);
 int db_free_column(Column *column, int nrOfRows);
 int db_free_value(Value *value);
+
+void* allocateBytes(int nrOfBytes);
+void reAllocateBytes(void** memory,int nrOfBytes);
+char* strdupErrorChecked(const char* str);
+
+int db_deleteRows(Database *db, char **rowID, int nrOfRows, Name table);
+int db_deleteRow(Table *table, char *rowID);
+int tableIndex(Database *db, Name tableName);
+
 #endif // ENGINE_H_INCLUDED

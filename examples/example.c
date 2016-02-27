@@ -26,8 +26,15 @@ int main()
         ret = db_insert(db, "table1", columns, 3, elems);
     }
 
+    printf("Tableindex of %s: %d\n%s: %d\n%s: %d\n",
+        tbNames[0], tableIndex(db, tbNames[0]),
+        tbNames[1], tableIndex(db, tbNames[1]),
+        tbNames[2], tableIndex(db, tbNames[2])
+        );
 
-    printf("ret%d\n",ret);
+    db_deleteRows(db, elems, 3, tbNames[0]);
+
+    /*printf("ret%d\n",ret);
     printf("Column type:%d\n", db->tables[0]->columns[2]->type);
     printf("Column type:%d\n", db->tables[0]->columns[1]->type);
     printf("Column type:%d\n", db->tables[0]->columns[0]->type);
@@ -40,8 +47,8 @@ int main()
     printf("\nelemVal:%s\n", db->tables[0]->columns[0]->elements[1]->elem);
     printf("\nelemVal:%s\n", db->tables[0]->columns[2]->elements[1]->elem);
 
-    printf("%s\n", db->tables[0]->row_ID[0]);
-    db_free_database(&db);
-
+    printf("%s\n", db->tables[0]->row_ID[0]);*/
+    //db_free_database(&db);
+    db_close(&db);
     return 0;
 }

@@ -1,6 +1,16 @@
 #include "engine.h"
 #include "error_codes.h"
 
+void db_Create(Database **db, Name db_Database_Name){
+
+    *db = (Database *) allocateBytes(sizeof(Database));
+    (*db)->name = strdupErrorChecked((const char *) db_Database_Name);
+
+    /*Empty database*/
+    (*db)->tables = NULL;
+    (*db)->nrOfTables = 0;
+}
+
 /*
 Function: Adds a number of tables to the database.
 
@@ -279,34 +289,31 @@ int db_select(){
 }
 
 int db_deleteRows(Database *db, char **rowID, int nrOfRows, Name table){
-    int tableIndex = -1;
-    int ret;
-    for(int i=0; i < db->nrOfTables;i++) {
-        if(strcmp(db->tables[i]->name, table)==0){
-            tableIndex = i;
-            break;
-        }
-    }
-
-    if(tableIndex==-1){
+    int tableInd = tableIndex(db, table);
+    printf("HEJ");
+    if(tableInd==-1){
+        printf("Table %s does not exist", table);
         return TABLE_NOT_FOUND;
     }
 
+
     for(int i=0; i < nrOfRows; i++){
-        ret = db_deleteRow(db, rowID[i], table, tableIndex);
-        if(ret==COLUMN_NOT_FOUND){
+        int ret = db_deleteRow(db->tables[tableInd], rowID[i]);
+        if(ret==ROWID_NOT_FOUND){
             //do something :)
+            printf("YO\n");
         }
     }
     return SUCCESS;
 }
 
-int db_deleteRow(Database *db, char *rowID, Name table, int tableIndex){
-    for(int i=0; i<db->tables[i]->nrOfRows; i++){
+int db_deleteRow(Table *table, char *rowID){
+    for(int i=0; i< table->nrOfRows; i++){
+
         /*Match row ID*/
-        if(strcmp(db->tables[tableIndex]->row_ID[i], rowID)==0){
-            db->tables[tableIndex]->delete_rows[i] = true;
-            db->tables[tableIndex]->dirty_rows[i] = true;
+        if(!strcmp(table->row_ID[i], rowID)){
+            table->delete_rows[i] = true;
+            table->dirty_rows[i] = true;
             return SUCCESS;
         }
     }
@@ -317,6 +324,20 @@ int db_deleteRow(Database *db, char *rowID, Name table, int tableIndex){
 
 /*select from t*/
 int db_deleteWhere(Name table, Name *columnsToMatch, int nrOfColumns, Name *valuesToMatch, Name *columnToReturn){
+    return -1;
+}
+
+int db_close(Database **db){
+    int ret = db_free_database(db);
+}
+
+//Returns array index of table with name TableName
+int tableIndex(Database *db, Name tableName){
+    for(int i=0; i<db->nrOfTables; i++){
+        if(!strcmp(db->tables[i]->name,tableName)){
+            return i;
+        }
+    }
     return -1;
 }
 
