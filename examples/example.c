@@ -13,44 +13,35 @@ int main()
     Database *db;
 
     db_Create(&db, "Databasen");
-    printf("%s",db->name);
+    printf("Datbase name: %s\n",db->name);
 
     int ec;
 
     Name tbNames[] = {"table1","table2","table3"};
     ec = db_AddTables(db, tbNames, 3);
-    //printf("%s",db->tables[0]->name);
 
     int ret = db_AddColumns(db,"table1",columns,3,typess);
     
-    for(int i=0; i < 2000000; i++){
+    for(int i=0; i < 30; i++){
         ret = db_insert(db, "table1", columns, 3, elems);
     }
 
-    db_free_database(&db);
 
-    return 0;
-    printf("ret%d",ret);
-    //int db_AddColumns(Database *db, Name table, Name *columns, int nrOfColumns, Type *columnType){
-    /*printf("Column type:%d\n", db->tables[0]->columns[2]->type);
+    printf("ret%d\n",ret);
+    printf("Column type:%d\n", db->tables[0]->columns[2]->type);
     printf("Column type:%d\n", db->tables[0]->columns[1]->type);
     printf("Column type:%d\n", db->tables[0]->columns[0]->type);
     printf("Column name:%s\n", db->tables[0]->columns[2]->name);
     printf("Column name:%s\n", db->tables[0]->columns[1]->name);
-    printf("Column name:%s\n", db->tables[0]->columns[0]->name);*/
-    //db_insertElem(db, "Apa","fjong","EPA");
-    //printf("\n%s", db->tables[0]->columns[0]->elements[0]->elem);
-    //(Database *db, Name table, Name column, Element element)
+    printf("Column name:%s\n", db->tables[0]->columns[0]->name);
+    printf("%d ret\n", ret);
+    printf("%d ret\n", ret);
+    printf("nrElem%d\n",db->tables[0]->nrOfRows);
+    printf("\nelemVal:%s\n", db->tables[0]->columns[0]->elements[1]->elem);
+    printf("\nelemVal:%s\n", db->tables[0]->columns[2]->elements[1]->elem);
 
-    printf("%d ret", ret);
-    printf("%d ret", ret);
-    //db_insert()
-    //printf("nrElem%d",db->tables[0]->columns[0]->nrOfElements);
-    //printf("\nelemVal:%s", db->tables[0]->columns[0]->elements[1]->elem);
-    //printf("\nelemVal:%s", db->tables[0]->columns[2]->elements[1]->elem);
-
-    printf("%s", db->tables[0]->row_ID[0]);
-    //db_close(&db);
+    printf("%s\n", db->tables[0]->row_ID[0]);
+    db_free_database(&db);
 
     return 0;
 }
