@@ -250,28 +250,49 @@ Returns:
     SUCCESS or DUPLICATE_TABLE
 */
 int db_insertElem(Database *db, Name table, Name column, Element element){
+    int freeRowIndex=-1;
+
     /*Find correct table*/
     for(int i=0; i < db->nrOfTables;i++) {
         if(strcmp(db->tables[i]->name, table)==0){
+            int nrOfRows = db->tables[i]->nrOfRows;
+
+            //Is there any deleted row we can use available, if so find it's index.
+            if(nrOfRows>=1 && db->tables[i]->free_elems>0){
+                for(unsigned int x=0; x < db->tables[i]->free_elems; x++){
+                    if(db->tables[i]->delete_rows[x]==true){
+                        freeRowIndex=x;
+                        db->tables[i]->delete_rows[x]=false;
+                        db->tables[i]->free_elems--;
+                        break;
+                    }
+                }
+            }
+
 
             /*Find correct column*/
             for(int e=0; e < db->tables[i]->nrOfColumns; e++){
                 if(strcmp(db->tables[i]->columns[e]->name, column)==0){
 
-                    int nrOfRows = db->tables[i]->nrOfRows+1;
-
+                    //Is there a deleted row available?
+                    if(freeRowIndex!=-1){
+                        
+                    }
+                    //Else allocate space for a new row
                     /*Malloc or realloc?*/
-                    if(nrOfRows==1){
+                    else if(nrOfRows==0){
                         db->tables[i]->columns[e]->elements = allocateBytes(sizeof(Value *));
+                        freeRowIndex = nrOfRows;
                     }
                     else{
-                        reAllocateBytes((void **) &db->tables[i]->columns[e]->elements,nrOfRows*sizeof(Value *));
+                        reAllocateBytes((void **) &db->tables[i]->columns[e]->elements,(nrOfRows+1)*sizeof(Value *));
+                        freeRowIndex = nrOfRows;
                     }
 
 
                     //Allocate space for element and write value
-                    db->tables[i]->columns[e]->elements[nrOfRows-1] = allocateBytes(sizeof(Value));
-                    db->tables[i]->columns[e]->elements[nrOfRows-1]->elem = strdupErrorChecked(element);
+                    db->tables[i]->columns[e]->elements[freeRowIndex] = allocateBytes(sizeof(Value));
+                    db->tables[i]->columns[e]->elements[freeRowIndex]->elem = strdupErrorChecked(element);
 
                     return SUCCESS;
 
@@ -306,7 +327,6 @@ int db_deleteRows(Database *db, char **rowID, int nrOfRows, Name table){
         int ret = db_deleteRow(db->tables[tableInd], rowID[i]);
         if(ret==ROWID_NOT_FOUND){
             //do something :)
-            printf("YO\n");
         }
     }
     return SUCCESS;
@@ -320,7 +340,6 @@ int db_deleteRow(Table *table, char *rowID){
             table->delete_rows[i] = true;
 
             for(int ii=0; ii<table->nrOfColumns; ii++){
-                printf("EPA\n");
                 db_free_value(table->columns[ii]->elements[i]);
                 table->columns[ii]->elements[i]=NULL;
             }

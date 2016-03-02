@@ -32,10 +32,15 @@ int main()
         tbNames[2], tableIndex(db, tbNames[2])
         );
 
-    db_deleteRows(db, db->tables[0]->row_ID, 3, tbNames[0]);
-
+    db_deleteRows(db, db->tables[0]->row_ID, 10, tbNames[0]);
     printf("Free elems:%d\n", db->tables[0]->free_elems);
-    printf("Free elems:%d %d\n", db->tables[0]->nrOfRows, true);
+
+    for(int i=0; i < 30; i++){
+        ret = db_insert(db, "table1", columns, 3, elems);
+    }
+    
+    printf("Free elems:%d\n", db->tables[0]->free_elems);
+    //printf("Free elems:%d %d\n", db->tables[0]->nrOfRows, true);
 
     /*printf("ret%d\n",ret);
     printf("Column type:%d\n", db->tables[0]->columns[2]->type);
