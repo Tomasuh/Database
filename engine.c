@@ -58,6 +58,7 @@ int db_AddTables(Database *db, Name *db_TableNames, int nrOfTables){
         t->delete_rows = NULL;
         t->dirty_rows = NULL;
         t->row_ID = NULL;
+        t->free_elems=0;
 
         db->tables[oldExistingTb+i] = t;
     }
@@ -162,7 +163,7 @@ Returns:
 int db_insert(Database *db, Name tableName, Name *columns, int nrOfColumns, Element *elements){
     int ret;
     int freeRowIndex;
-    bool newRow = false;
+    bool newRow = true;
 
     Table* table = findTable(db, tableName);
 
@@ -190,7 +191,8 @@ int db_insert(Database *db, Name tableName, Name *columns, int nrOfColumns, Elem
             if(table->delete_rows[x]==true){
                 freeRowIndex=x;
                 table->free_elems--;
-                newRow = true;
+                newRow = false;
+                printf("Old row to be used found");
                 break;
             }
         }
@@ -202,6 +204,7 @@ int db_insert(Database *db, Name tableName, Name *columns, int nrOfColumns, Elem
 
         /*First row ID to be added?*/
         if(table->nrOfRows-1==0){
+            printf("First to be added\n");
             table->row_ID = allocateBytes(sizeof(char *));
             table->dirty_rows = (bool *)allocateBytes(sizeof(bool));
             table->delete_rows = (bool *)allocateBytes(sizeof(bool));
@@ -295,6 +298,7 @@ int db_deleteRows(Database *db, char **rowID, int nrOfRows, Name tableName){
     for(int i=0; i < nrOfRows; i++){
         int ret = db_deleteRow(table, rowID[i]);
         if(ret==ROWID_NOT_FOUND){
+            printf("row id not found\n");
             //do something :)
         }
     }
@@ -310,7 +314,7 @@ int db_deleteRow(Table *table, char *rowID){
     }
 
     table->delete_rows[rowIndex] = true;
-    table->row_ID[rowIndex] = "";
+    table->row_ID[rowIndex] = '\0';
 
     for(int i=0; i<table->nrOfColumns; i++){
         db_free_value(table->columns[i]->elements[rowIndex]);
@@ -350,7 +354,7 @@ int finRowInd(Table *table, char *rowID){
     for(int i=0; i< table->nrOfRows; i++){
 
         /*Match row ID*/
-        if(!strcmp(table->row_ID[i], rowID)){
+        if(strlen(table->row_ID[i]) == strlen(rowID) && !strcmp(table->row_ID[i], rowID)){
             return i;
         }
     }
@@ -383,7 +387,6 @@ int db_free_table(Table *table){
     free(table->columns);
 
     for(int i=0; i<table->nrOfRows; i++){
-
         free(table->row_ID[i]);
     }
 
