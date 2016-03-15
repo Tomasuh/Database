@@ -27,13 +27,13 @@ int db_AddTables(Database *db, Name *db_TableNames, int nrOfTables){
     int oldExistingTb = db->nrOfTables;
 
     /*Make sure no existing tables with same name exists*/
-    for(int i=0; i < oldExistingTb; i++){
-        for(int e=0; e < nrOfTables; e++){
-            if ((strcmp(db_TableNames[e], db->tables[i]->name))==0) {
-                return DUPLICATE_TABLE;
-            }
+
+    for(int e=0; e < nrOfTables; e++){
+        if(findTable(db, db_TableNames[e])!=NULL){
+             return DUPLICATE_TABLE;
         }
     }
+    
 
     /*Calculate new total size needed for the tables*/
     int newSize = (oldExistingTb+nrOfTables)*sizeof(Table *);
@@ -109,33 +109,33 @@ Parameters:
 Returns:
     SUCCESS or DUPLICATE_TABLE
 */
-int db_AddColumn(Database *db, Name table, Name column, Type columnType){
-    for(int i=0; i < db->nrOfTables; i++){
-        /*Match on correct table*/
-        if((strcmp(db->tables[i]->name, table))==0){
-            db->tables[i]->nrOfColumns += 1;
+int db_AddColumn(Database *db, Name tableName, Name column, Type columnType){
+    /*Match on correct table*/
+    Table* table = findTable(db, tableName);
 
-            int nrOfColumns = db->tables[i]->nrOfColumns;
-            /*First time allocating memory for a column in the table?*/
-            if(nrOfColumns==1){
-                db->tables[i]->columns = allocateBytes(nrOfColumns*sizeof(Column *));
-            }
-            /*Else reallocate the list of pointers*/
-            else{
-                reAllocateBytes((void **) &db->tables[i]->columns,nrOfColumns*sizeof(Column *));
-            }
-
-            //Allocate space for the column and set type
-            db->tables[i]->columns[nrOfColumns-1] = allocateBytes(sizeof(Column));
-            db->tables[i]->columns[nrOfColumns-1]->type = columnType;
-            db->tables[i]->columns[nrOfColumns-1]->name = strdupErrorChecked(column);
-            db->tables[i]->columns[nrOfColumns-1]->elements = NULL;
-            db->tables[i]->nrOfRows = 0;
-            return SUCCESS;
-        }
+    if(!table){
+        return TABLE_NOT_FOUND;
     }
 
-    return TABLE_NOT_FOUND;
+    table->nrOfColumns += 1;
+
+    int nrOfColumns = table->nrOfColumns;
+    /*First time allocating memory for a column in the table?*/
+    if(nrOfColumns==1){
+        table->columns = allocateBytes(nrOfColumns*sizeof(Column *));
+    }
+    /*Else reallocate the list of pointers*/
+    else{
+        reAllocateBytes((void **) &table->columns,nrOfColumns*sizeof(Column *));
+    }
+
+    //Allocate space for the column and set type
+    table->columns[nrOfColumns-1] = allocateBytes(sizeof(Column));
+    table->columns[nrOfColumns-1]->type = columnType;
+    table->columns[nrOfColumns-1]->name = strdupErrorChecked(column);
+    table->columns[nrOfColumns-1]->elements = NULL;
+    table->nrOfRows = 0;
+    return SUCCESS;
 }
 
 
@@ -159,21 +159,19 @@ Parameters:
 Returns:
     SUCCESS or DUPLICATE_TABLE
 */
-int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element *elements){
+int db_insert(Database *db, Name tableName, Name *columns, int nrOfColumns, Element *elements){
     int ret;
     int freeRowIndex;
-    int tableInd = tableIndex(db, table);
     bool newRow = false;
-    /*
-    Is the amount of values equal to the number of columns?
-    I know this code isn't effective but may be improved when time comes.
-    */
-    for(int i=0; i < db->nrOfTables;i++) {
-        if(strcmp(db->tables[i]->name, table)==0){
-            if(db->tables[i]->nrOfColumns!=nrOfColumns){
-                return WRONG_NR_OF_VALUES;
-            }
-        }
+
+    Table* table = findTable(db, tableName);
+
+    if(!table){
+        return TABLE_NOT_FOUND;
+    }
+
+    if(table->nrOfColumns!=nrOfColumns){
+        return WRONG_NR_OF_VALUES;
     }
 
     /*
@@ -182,64 +180,60 @@ int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element 
     (Re)allocate rows to deleted array and initialise added element to false
     (Re)allocate rows to dirty array and initialise added element to false
     */
-    for(int i=0; i < db->nrOfTables;i++) {
-        if(strcmp(db->tables[i]->name, table)==0){
 
-            int nrOfRows = db->tables[i]->nrOfRows;
-            freeRowIndex = nrOfRows; //Initially place free row to be last element + 1
+    int nrOfRows = table->nrOfRows;
+    freeRowIndex = nrOfRows; //Initially place free row to be last element + 1
 
-            //Is there any deleted row we can use available, if so find it's index.
-            if(nrOfRows>=1 && db->tables[i]->free_elems>0){
-                for(unsigned int x=0; x < db->tables[i]->free_elems; x++){
-                    if(db->tables[i]->delete_rows[x]==true){
-                        freeRowIndex=x;
-                        db->tables[i]->free_elems--;
-                        newRow = true;
-                    }
-                }
+    //Is there any deleted row we can use available, if so find it's index.
+    if(nrOfRows>=1 && table->free_elems>0){
+        for(unsigned int x=0; x < table->free_elems; x++){
+            if(table->delete_rows[x]==true){
+                freeRowIndex=x;
+                table->free_elems--;
+                newRow = true;
+                break;
             }
-
-            //If no deleted row already available.
-            if(freeRowIndex==db->tables[i]->nrOfRows){
-                    db->tables[i]->nrOfRows++;
-
-                /*First row ID to be added?*/
-                if(db->tables[i]->nrOfRows-1==0){
-                    db->tables[i]->row_ID = allocateBytes(sizeof(char *));
-                    db->tables[i]->dirty_rows = (bool *)allocateBytes(sizeof(bool));
-                    db->tables[i]->delete_rows = (bool *)allocateBytes(sizeof(bool));
-                }
-                else{
-                    reAllocateBytes((void **) &db->tables[i]->row_ID, db->tables[i]->nrOfRows*sizeof(char *));
-                    reAllocateBytes((void **) &db->tables[i]->dirty_rows, db->tables[i]->nrOfRows*sizeof(bool));
-                    reAllocateBytes((void**) &db->tables[i]->delete_rows, db->tables[i]->nrOfRows*sizeof(bool));
-                }
-                /*Allocate and set row ID*/
-                db->tables[i]->row_ID[db->tables[i]->nrOfRows-1] = allocateBytes(37*sizeof(char));
-            }
-
-            uuid_t uuid;
-
-            // generate row ID
-            uuid_generate_random(uuid);
-            //save it as a string
-            uuid_unparse(uuid, db->tables[i]->row_ID[freeRowIndex]);
-
-            db->tables[i]->dirty_rows[freeRowIndex] = true;
-            db->tables[i]->delete_rows[freeRowIndex] = false;
-            break;
         }
     }
 
+    //If no deleted row already available.
+    if(freeRowIndex==table->nrOfRows){
+            table->nrOfRows++;
+
+        /*First row ID to be added?*/
+        if(table->nrOfRows-1==0){
+            table->row_ID = allocateBytes(sizeof(char *));
+            table->dirty_rows = (bool *)allocateBytes(sizeof(bool));
+            table->delete_rows = (bool *)allocateBytes(sizeof(bool));
+        }
+        else{
+            reAllocateBytes((void **) &table->row_ID, table->nrOfRows*sizeof(char *));
+            reAllocateBytes((void **) &table->dirty_rows, table->nrOfRows*sizeof(bool));
+            reAllocateBytes((void**) &table->delete_rows, table->nrOfRows*sizeof(bool));
+        }
+        /*Allocate and set row ID*/
+        table->row_ID[table->nrOfRows-1] = allocateBytes(37*sizeof(char));
+    }
+
+    uuid_t uuid;
+
+    // generate row ID
+    uuid_generate_random(uuid);
+    //save it as a string
+    uuid_unparse(uuid, table->row_ID[freeRowIndex]);
+
+    table->dirty_rows[freeRowIndex] = true;
+    table->delete_rows[freeRowIndex] = false;
+
     for(int i=0; i<nrOfColumns; i++){
         /*Find correct column*/
-        int columnInd = columnIndex(table, columns[i]);
-        if(columnInd==-1){
+        Column *col = findColumn(table, columns[i]);
+
+        if(!col){
             return COLUMN_NOT_FOUND;
         }
 
-        Column column = db->tables[tableInd]->columns[columnInd];
-        ret = db_insertElem(column, elements[i], freeRowIndex, newRow);
+        ret = db_insertElem(col, elements[i], freeRowIndex, newRow);
         if(ret!=SUCCESS){
             return ret;
         }
@@ -268,17 +262,14 @@ int db_insertElem(Column *column, Element element, int freeRowIndex, bool newRow
     /*Malloc or realloc?*/
     if(newRow && column->elements==NULL){
         column->elements = allocateBytes(sizeof(Value *));
-        freeRowIndex = nrOfRows;
     }
     else if(newRow){
-        reAllocateBytes((void **) &column->elements,(nrOfRows+1)*sizeof(Value *));
-        freeRowIndex = nrOfRows;
+        reAllocateBytes((void **) &column->elements,(freeRowIndex)*sizeof(Value *));
     }
-
 
     //Allocate space for element and write value
     column->elements[freeRowIndex] = allocateBytes(sizeof(Value));
-    column->columns[columnInd]->elements[freeRowIndex]->elem = strdupErrorChecked(element);
+    column->elements[freeRowIndex]->elem = strdupErrorChecked(element);
 
     return SUCCESS;
 }
@@ -293,16 +284,16 @@ int db_deleteWhere(Name table, Name *columnsToMatch, int nrOfColumns, Name *valu
 }
 
 
-int db_deleteRows(Database *db, char **rowID, int nrOfRows, Name table){
-    int tableInd = tableIndex(db, table);
-    if(tableInd==-1){
-        printf("Table %s does not exist", table);
+int db_deleteRows(Database *db, char **rowID, int nrOfRows, Name tableName){
+    Table* table = findTable(db, tableName);
+
+    if(!table){
         return TABLE_NOT_FOUND;
     }
 
 
     for(int i=0; i < nrOfRows; i++){
-        int ret = db_deleteRow(db->tables[tableInd], rowID[i]);
+        int ret = db_deleteRow(table, rowID[i]);
         if(ret==ROWID_NOT_FOUND){
             //do something :)
         }
@@ -311,23 +302,23 @@ int db_deleteRows(Database *db, char **rowID, int nrOfRows, Name table){
 }
 
 int db_deleteRow(Table *table, char *rowID){
-    for(int i=0; i< table->nrOfRows; i++){
+    
+    int rowIndex = finRowInd(table, rowID);
 
-        /*Match row ID*/
-        if(!strcmp(table->row_ID[i], rowID)){
-            table->delete_rows[i] = true;
-            table->row_ID[i] = "";
-            for(int ii=0; ii<table->nrOfColumns; ii++){
-                db_free_value(table->columns[ii]->elements[i]);
-                table->columns[ii]->elements[i]=NULL;
-            }
-
-            table->free_elems++;
-            return SUCCESS;
-        }
+    if(rowIndex==ROWID_NOT_FOUND){
+        return ROWID_NOT_FOUND;
     }
-    return ROWID_NOT_FOUND;
 
+    table->delete_rows[rowIndex] = true;
+    table->row_ID[rowIndex] = "";
+
+    for(int i=0; i<table->nrOfColumns; i++){
+        db_free_value(table->columns[i]->elements[rowIndex]);
+        table->columns[i]->elements[rowIndex]=NULL;
+    }
+
+    table->free_elems++;
+    return SUCCESS;
 }
 
 int db_close(Database **db){
@@ -335,23 +326,36 @@ int db_close(Database **db){
 }
 
 //Returns array index of table with name TableName
-int tableIndex(Database *db, Name tableName){
+
+Table* findTable(Database *db, Name tableName){
     for(int i=0; i<db->nrOfTables; i++){
         if(!strcmp(db->tables[i]->name,tableName)){
-            return i;
+            return db->tables[i];
         }
     }
-    return -1;
+    return NULL;
 }
 
 //Returns array index of column with name columnName
-int columnIndex(Table *db, Name columnName){
+Column* findColumn(Table *table, Name columnName){
     for(int i=0; i<table->nrOfColumns; i++){
         if(!strcmp(table->columns[i]->name,columnName)){
+            return table->columns[i];
+        }
+    }
+    return NULL;
+}
+
+int finRowInd(Table *table, char *rowID){
+    for(int i=0; i< table->nrOfRows; i++){
+
+        /*Match row ID*/
+        if(!strcmp(table->row_ID[i], rowID)){
             return i;
         }
     }
-    return -1;
+
+    return ROWID_NOT_FOUND;
 }
 
 int db_free_database(Database **db){

@@ -60,8 +60,8 @@ void db_Create(Database **db, Name db_Database_Name);
 int db_AddTables(Database *db, Name *db_TableNames,int nrOfTables);
 int db_AddColumn(Database *db, Name table, Name column, Type columnType);
 int db_AddColumns(Database *db, Name table, Name *columns, int nrOfColumns, Type *columnType);
-int db_insert(Database *db, Name table, Name *columns, int nrOfColumns, Element *elements);
-int db_insertElem(Database *db, Name table, Name column, Element element, int freeRowIndex);
+int db_insert(Database *db, Name tableName, Name *columns, int nrOfColumns, Element *elements);
+int db_insertElem(Column *column, Element element, int freeRowIndex, bool newRow);
 int db_deleteWhere(Name table, Name *columnsToMatch, int nrOfColumns, Name *valuesToMatch, Name *columnToReturn);
 int db_close(Database **db);
 
@@ -76,8 +76,9 @@ void* allocateBytes(int nrOfBytes);
 void reAllocateBytes(void** memory,int nrOfBytes);
 char* strdupErrorChecked(const char* str);
 
-int db_deleteRows(Database *db, char **rowID, int nrOfRows, Name table);
+int db_deleteRows(Database *db, char **rowID, int nrOfRows, Name tableName);
 int db_deleteRow(Table *table, char *rowID);
-int tableIndex(Database *db, Name tableName);
+Column* findColumn(Table *table, Name columnName);
+Table* findTable(Database *db, Name tableName);
 
 #endif // ENGINE_H_INCLUDED
