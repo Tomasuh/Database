@@ -85,5 +85,6 @@ int db_deleteRows(Database *db, char **rowID, int nrOfRows, Name tableName);
 int db_deleteRow(Table *table, char *rowID);
 Column* findColumn(Table *table, Name columnName);
 Table* findTable(Database *db, Name tableName);
+int findRowInd(Table *table, char *rowID);
 
 #endif // ENGINE_H_INCLUDED

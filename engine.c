@@ -221,7 +221,7 @@ int db_insert(Database *db, Name tableName, Name *columns, int nrOfColumns, Elem
     //save it as a string
     uuid_unparse(uuid, table->row_ID[freeRowIndex]);
 
-    printf("Allocated %s\n", table->row_ID[freeRowIndex]);
+    printf("Allocated %s at row index:%d\n", table->row_ID[freeRowIndex], freeRowIndex);
 
     table->dirty_rows[freeRowIndex] = true;
     table->delete_rows[freeRowIndex] = false;
@@ -294,7 +294,6 @@ int db_deleteRows(Database *db, char **rowID, int nrOfRows, Name tableName){
 
 
     for(int i=0; i < nrOfRows; i++){
-        printf("%s\n", rowID[i]);
         int ret = db_deleteRow(table, rowID[i]);
         if(ret==ROWID_NOT_FOUND){
             printf("row id not found\n");
@@ -305,15 +304,17 @@ int db_deleteRows(Database *db, char **rowID, int nrOfRows, Name tableName){
 }
 
 int db_deleteRow(Table *table, char *rowID){
-    
-    int rowIndex = finRowInd(table, rowID);
+    printf("Deleting at rowID: %s ", rowID);
+    fflush(stdout);
+    int rowIndex = findRowInd(table, rowID);
+    printf("at index:%d\n", rowIndex);
 
     if(rowIndex==ROWID_NOT_FOUND){
         return ROWID_NOT_FOUND;
     }
 
     table->delete_rows[rowIndex] = true;
-    table->row_ID[rowIndex] = '\0';
+    table->row_ID[rowIndex][0] = '\0';
 
     for(int i=0; i<table->nrOfColumns; i++){
         db_free_value(table->columns[i]->elements[rowIndex]);
@@ -326,6 +327,7 @@ int db_deleteRow(Table *table, char *rowID){
     freeRow->index = rowIndex;
     table->freeRows = freeRow;
 
+    printf("Deleted successfully\n");
     return SUCCESS;
 }
 
@@ -354,14 +356,13 @@ Column* findColumn(Table *table, Name columnName){
     return NULL;
 }
 
-int finRowInd(Table *table, char *rowID){
+int findRowInd(Table *table, char *rowID){
     for(int i=0; i< table->nrOfRows; i++){
-        printf("\n%s ZXXX\n", rowID);
+        //printf("\n%s ZXXX\n", rowID);
         if(rowID==NULL){
             printf("WOWW");
         }
         strlen(rowID);
-        printf("DONE");
         /*Match row ID*/
         if(strlen(table->row_ID[i]) == strlen(rowID) && !strcmp(table->row_ID[i], rowID)){
             return i;
