@@ -195,7 +195,7 @@ int db_insert(Database *db, Name tableName, Name *columns, int nrOfColumns, Elem
 
 
     //If no deleted row already available.
-    if(!newRow){
+    if(newRow){
             table->nrOfRows++;
 
         /*First row ID to be added?*/
@@ -220,6 +220,8 @@ int db_insert(Database *db, Name tableName, Name *columns, int nrOfColumns, Elem
     uuid_generate_random(uuid);
     //save it as a string
     uuid_unparse(uuid, table->row_ID[freeRowIndex]);
+
+    printf("Allocated %s\n", table->row_ID[freeRowIndex]);
 
     table->dirty_rows[freeRowIndex] = true;
     table->delete_rows[freeRowIndex] = false;
@@ -359,6 +361,7 @@ int finRowInd(Table *table, char *rowID){
             printf("WOWW");
         }
         strlen(rowID);
+        printf("DONE");
         /*Match row ID*/
         if(strlen(table->row_ID[i]) == strlen(rowID) && !strcmp(table->row_ID[i], rowID)){
             return i;
