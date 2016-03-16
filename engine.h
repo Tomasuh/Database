@@ -26,6 +26,11 @@ float*/
 #define DB_DOUBLE  2
 #define DB_FLOAT   3
 
+typedef struct FreeRows{
+    struct FreeRows *next;
+    int index;
+}FreeRows;
+
 
 typedef struct{
    Element  elem;
@@ -46,7 +51,7 @@ typedef struct{
     bool *delete_rows;
     bool *dirty_rows;
     char **row_ID;
-    unsigned int free_elems;
+    FreeRows *freeRows;
 }Table;
 
 typedef struct{
@@ -54,7 +59,6 @@ typedef struct{
     Table **tables;
     int nrOfTables;
 }Database;
-
 
 void db_Create(Database **db, Name db_Database_Name);
 int db_AddTables(Database *db, Name *db_TableNames,int nrOfTables);
@@ -71,6 +75,7 @@ int db_free_database(Database **db);
 int db_free_table(Table *table);
 int db_free_column(Column *column, int nrOfRows, bool *delete_rows);
 int db_free_value(Value *value);
+FreeRows* db_free_freeRow(FreeRows *freeRow);
 
 void* allocateBytes(int nrOfBytes);
 void reAllocateBytes(void** memory,int nrOfBytes);

@@ -58,7 +58,7 @@ int db_AddTables(Database *db, Name *db_TableNames, int nrOfTables){
         t->delete_rows = NULL;
         t->dirty_rows = NULL;
         t->row_ID = NULL;
-        t->free_elems=0;
+        t->freeRows = NULL;
 
         db->tables[oldExistingTb+i] = t;
     }
@@ -186,20 +186,16 @@ int db_insert(Database *db, Name tableName, Name *columns, int nrOfColumns, Elem
     freeRowIndex = nrOfRows; //Initially place free row to be last element + 1
 
     //Is there any deleted row we can use available, if so find it's index.
-    if(nrOfRows>=1 && table->free_elems>0){
-        for(unsigned int x=0; x < table->free_elems; x++){
-            if(table->delete_rows[x]==true){
-                freeRowIndex=x;
-                table->free_elems--;
-                newRow = false;
-                printf("Old row to be used found");
-                break;
-            }
-        }
+    if(table->freeRows){
+        newRow = false;
+        freeRowIndex = table->freeRows->index;
+        //Free the queued row and place next element first.
+        table->freeRows = db_free_freeRow(table->freeRows);
     }
 
+
     //If no deleted row already available.
-    if(freeRowIndex==table->nrOfRows){
+    if(!newRow){
             table->nrOfRows++;
 
         /*First row ID to be added?*/
@@ -296,6 +292,7 @@ int db_deleteRows(Database *db, char **rowID, int nrOfRows, Name tableName){
 
 
     for(int i=0; i < nrOfRows; i++){
+        printf("%s\n", rowID[i]);
         int ret = db_deleteRow(table, rowID[i]);
         if(ret==ROWID_NOT_FOUND){
             printf("row id not found\n");
@@ -321,7 +318,12 @@ int db_deleteRow(Table *table, char *rowID){
         table->columns[i]->elements[rowIndex]=NULL;
     }
 
-    table->free_elems++;
+    //Insert deleted row in queue for reuse when inserting.
+    FreeRows *freeRow = allocateBytes(sizeof(FreeRows));
+    freeRow->next = table->freeRows;
+    freeRow->index = rowIndex;
+    table->freeRows = freeRow;
+
     return SUCCESS;
 }
 
@@ -352,7 +354,11 @@ Column* findColumn(Table *table, Name columnName){
 
 int finRowInd(Table *table, char *rowID){
     for(int i=0; i< table->nrOfRows; i++){
-
+        printf("\n%s ZXXX\n", rowID);
+        if(rowID==NULL){
+            printf("WOWW");
+        }
+        strlen(rowID);
         /*Match row ID*/
         if(strlen(table->row_ID[i]) == strlen(rowID) && !strcmp(table->row_ID[i], rowID)){
             return i;
@@ -414,6 +420,12 @@ int db_free_column(Column *column, int nrOfRows, bool *delete_rows){
 int db_free_value(Value *value){
     free(value->elem);
     return 0;
+}
+
+FreeRows* db_free_freeRow(FreeRows *freeRow){
+    FreeRows *next = freeRow->next;
+    free(freeRow);
+    return next;
 }
 
 void* allocateBytes(int nrOfBytes){
